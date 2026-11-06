@@ -24,19 +24,6 @@ tabs:
               type: textarea
               display: 'AI summary'
           -
-            handle: publication_state
-            field:
-              options:
-                -
-                  key: draft
-                  value: null
-                -
-                  key: published
-                  value: null
-              default: draft
-              type: select
-              display: 'Publication state'
-          -
             handle: author
             field:
               type: users

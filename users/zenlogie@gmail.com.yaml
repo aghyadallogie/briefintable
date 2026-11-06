@@ -1,9 +1,0 @@
-super: true
-name: zenlogie
-id: c39b8ce6-ec10-4a21-8c15-b0370fde7596
-password_hash: $2y$12$dIiZp1XdsuK2s4JP7th9G.5Fc2wVnvm5eB.kPnCj9mcbhZVqXG3Sa
-preferences:
-  collections:
-    listing_mode: list
-    briefings:
-      view: list

@@ -1,7 +1,7 @@
 <nav class="bg-white border-b border-gray-200 px-6 py-4 sticky top-0 z-50">
     <div class="max-w-5xl mx-auto flex justify-between items-center">
         <!-- Logo / Home -->
-        <a href="/" class="text-xl font-bold text-indigo-600">
+        <a href="/briefings" class="text-xl font-bold text-indigo-600">
             Briefintable
         </a>
 

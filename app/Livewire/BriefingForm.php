@@ -13,14 +13,14 @@ class BriefingForm extends Component
 {
     public string $title = '';
     public string $content = '';
-    public string $publication_state = 'draft';
+    public bool $published = false;
 
     protected function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'publication_state' => 'required|in:draft,published',
+            'published' => 'boolean',
         ];
     }
 
@@ -33,11 +33,10 @@ class BriefingForm extends Component
         $entry->collection('briefings')
             ->blueprint('briefing')
             ->slug($this->uniqueSlug())
-            ->published($this->publication_state === 'published')
+            ->published($this->published)
             ->data([
                 'title' => $this->title,
                 'content' => $this->content,
-                'publication_state' => $this->publication_state,
                 'author' => Auth::id(),
             ]);
 
@@ -45,7 +44,7 @@ class BriefingForm extends Component
 
         session()->flash('success', 'Briefing successfully created!');
 
-        $this->reset(['title', 'content', 'publication_state']);
+        $this->reset(['title', 'content', 'published']);
     }
 
     protected function uniqueSlug(): string

@@ -24,15 +24,12 @@
                 @error('content') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
-            <!-- Publication State -->
-            <div>
-                <label for="publication_state" class="block text-sm font-medium text-gray-700">Publication State</label>
-                <select id="publication_state" wire:model="publication_state"
-                    class="mt-1 p-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 sm:text-sm">
-                    <option value="draft">Draft</option>
-                    <option value="published">Published</option>
-                </select>
-                @error('publication_state') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
+            <!-- Published -->
+            <div class="flex items-center gap-2">
+                <input type="checkbox" id="published" wire:model="published"
+                    class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label for="published" class="text-sm font-medium text-gray-700">Publish immediately</label>
+                @error('published') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
 
             <!-- Submit -->
