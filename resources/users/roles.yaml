@@ -1,4 +1,9 @@
-# admin:
-#   title: Administrator
-#   permissions:
-#     - super
+# Admins are plain Statamic super users (`super: true` on the user), so there is no admin role.
+#
+# contributor: may submit briefings from /briefings/create, but only as drafts. An admin publishes
+# them in the control panel. The role deliberately has no `access cp`, so /cp stays closed to it, and no
+# `publish briefings entries`. Do not add either without also updating BriefingForm and its tests.
+contributor:
+  title: Contributor
+  permissions:
+    - 'create briefings entries'

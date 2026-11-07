@@ -27,7 +27,8 @@ class BriefingFormTest extends TestCase
         Cache::flush();
 
         // Deliberately not saved: avoids writing a user file into /users during tests.
-        $this->actingAs(User::make()->id('author-1')->email('author@example.test'));
+        // A super user may create and publish; see ContributorRoleTest for restricted users.
+        $this->actingAs(User::make()->id('author-1')->email('author@example.test')->makeSuper());
     }
 
     private function briefings()

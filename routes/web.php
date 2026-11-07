@@ -17,5 +17,9 @@ Route::get('/login', function () {
 })->name('login');
 
 Route::middleware(['web', 'auth'])->group(function () {
-    Route::get('/briefings/create', BriefingForm::class)->name('briefings.create');
+    // Statamic permission, so the CP and this form share one set of rules. The Livewire
+    // `save` action is a separate request that skips this middleware and checks it again.
+    Route::get('/briefings/create', BriefingForm::class)
+        ->middleware('can:create briefings entries')
+        ->name('briefings.create');
 });

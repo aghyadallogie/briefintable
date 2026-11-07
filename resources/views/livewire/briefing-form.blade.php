@@ -25,12 +25,16 @@
             </div>
 
             <!-- Published -->
+            @if ($canPublish)
             <div class="flex items-center gap-2">
                 <input type="checkbox" id="published" wire:model="published"
                     class="rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
                 <label for="published" class="text-sm font-medium text-gray-700">Publish immediately</label>
                 @error('published') <span class="text-red-500 text-xs">{{ $message }}</span> @enderror
             </div>
+            @else
+            <p class="text-sm text-gray-500">Your briefing is saved as a draft and an admin will publish it.</p>
+            @endif
 
             <!-- Submit -->
             <div class="flex justify-end items-center gap-3">

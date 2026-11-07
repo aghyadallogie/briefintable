@@ -29,6 +29,23 @@ Configure the database in `.env` (`DB_CONNECTION=pgsql`, or `sqlite` for a throw
 - **Writing** is Livewire: [`BriefingForm`](app/Livewire/BriefingForm.php) creates an entry in the `briefings` collection. "Publish immediately" sets Statamic's native `published` flag (there is no separate status field).
 - **Fields** are defined in the blueprint [`resources/blueprints/collections/briefings/briefing.yaml`](resources/blueprints/collections/briefings/briefing.yaml).
 
+### Roles and publishing
+
+Admins are Statamic super users (`super: true`). Outside writers get the `contributor` role from [`resources/users/roles.yaml`](resources/users/roles.yaml). It has only `create briefings entries`.
+
+| | Can open `/briefings/create` | Can publish from the form | Can open `/cp` |
+|---|---|---|---|
+| Contributor | yes | no, always saved as a draft | no (Statamic's "Unauthorized" page) |
+| Admin (super) | yes | yes | yes |
+| Any other logged-in user | no (403) | no | only with `access cp` |
+
+Admins publish contributors' drafts in the CP (Collections → Briefings → filter by Draft). The form checks the permission on the route and again in `save()`, and ignores the `published` flag unless the user has `publish briefings entries` ([`ContributorRoleTest`](tests/Feature/ContributorRoleTest.php)).
+
+- Roles need `STATAMIC_PRO_ENABLED=true`; without it the CP user form has no Roles field. Pro is free to try locally and needs a licence in production.
+- To create a contributor: CP → Users → create (or `php please make:user`), then set the role to Contributor.
+- Never make your only admin a contributor: contributors can't open the CP to undo it. Recover by editing the user file in `/users`: put `super: true` back and delete the `roles:` line.
+- Saving roles from the CP rewrites `roles.yaml` and drops its comments.
+
 ### Where data lives
 
 Set in [`config/statamic/eloquent-driver.php`](config/statamic/eloquent-driver.php):
@@ -65,5 +82,5 @@ vendor/bin/pint                # format
 
 ## Known gaps
 
-- No authorization beyond "logged in": any user can create and publish a briefing.
+- No rate limit on the form, and contributors can't edit or delete their submissions.
 - Users are flat files, so they don't survive a host with an ephemeral disk.
