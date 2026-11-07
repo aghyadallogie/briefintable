@@ -2,18 +2,18 @@
 
 namespace Tests\Feature;
 
-// use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 class ExampleTest extends TestCase
 {
     /**
-     * A basic test example.
+     * Smoke test: the application boots and answers requests.
+     *
+     * (The stock test requested "/", but the home page is a Statamic entry stored in the
+     * database, which does not exist in a fresh test database.)
      */
     public function test_the_application_returns_a_successful_response(): void
     {
-        $response = $this->get('/');
-
-        $response->assertStatus(200);
+        $this->get('/up')->assertOk();
     }
 }

@@ -3,24 +3,44 @@
         <h1 class="text-3xl font-bold">Latest Briefings</h1>
     </div>
 
-    <div class="space-y-6">
-        {{ collection:briefings sort="created_at:desc" }}
-            {{ unless no_results }}
-                <article class="p-6 bg-white rounded-lg shadow border border-gray-100">
-                    <h2 class="text-2xl font-semibold mb-2">
-                        <a href="{{ url }}" class="text-indigo-600 hover:text-indigo-800">{{ title }}</a>
-                    </h2>
-                    <div class="text-sm text-gray-500 mb-4">
-                        By {{ author:name }} | {{ updated_at format="M j, Y" }}
-                    </div>
-                    <div class="prose text-gray-700">
-                        {{ content | truncate:200 }}
-                    </div>
-                </article>
-            {{ /unless }}
-            {{ if no_results }}
-                <p class="text-gray-500">No briefings have been published yet.</p>
-            {{ /if }}
-        {{ /collection:briefings }}
-    </div>
+    {{# Same HTML for every visitor, so safe to cache. Key is version-stamped; see App\Support\BriefingsCache. #}}
+    {{ cache :key="cache_key" for="1 day" }}
+        <div class="space-y-6">
+            {{ collection:briefings sort="created_at:desc" paginate="{per_page}" as="items" }}
+                {{ if no_results }}
+                    <p class="text-gray-500">No briefings have been published yet.</p>
+                {{ /if }}
+
+                {{ items }}
+                    <article class="p-6 bg-white rounded-lg shadow border border-gray-100">
+                        <h2 class="text-2xl font-semibold mb-2">
+                            <a href="{{ url }}" class="text-indigo-600 hover:text-indigo-800">{{ title }}</a>
+                        </h2>
+                        <div class="text-sm text-gray-500 mb-4">
+                            By {{ author:name }} | {{ updated_at format="M j, Y" }}
+                        </div>
+                        <div class="text-gray-700">
+                            {{ content | strip_tags | truncate:200 }}
+                        </div>
+                    </article>
+                {{ /items }}
+
+                {{ paginate }}
+                    {{ if total_pages > 1 }}
+                        <nav class="flex items-center justify-between pt-2 text-sm" aria-label="Pagination">
+                            {{# Relative links on purpose: prev_page/next_page are absolute URLs for whatever host rendered
+                                 this page, and this block is cached. #}}
+                            {{ if prev_page }}
+                                <a href="?page={{ current_page - 1 }}" class="text-indigo-600 hover:text-indigo-800">&larr; Newer</a>
+                            {{ else }}<span></span>{{ /if }}
+                            <span class="text-gray-500">Page {{ current_page }} of {{ total_pages }}</span>
+                            {{ if next_page }}
+                                <a href="?page={{ current_page + 1 }}" class="text-indigo-600 hover:text-indigo-800">Older &rarr;</a>
+                            {{ else }}<span></span>{{ /if }}
+                        </nav>
+                    {{ /if }}
+                {{ /paginate }}
+            {{ /collection:briefings }}
+        </div>
+    {{ /cache }}
 </div>

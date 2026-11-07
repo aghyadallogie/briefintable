@@ -8,6 +8,13 @@ use Livewire\Component;
 use Statamic\Facades\Entry;
 use Statamic\Support\Str;
 
+/**
+ * Handles the creation of new briefings via a Livewire full-page component.
+ * 
+ * Validates input, generates a unique slug, assigns the authenticated user 
+ * as the author, and persists the entry to the database. Cache invalidation 
+ * is handled automatically by the EntrySaved event in AppServiceProvider.
+ */
 #[Layout('components.layouts.app')]
 class BriefingForm extends Component
 {
@@ -28,7 +35,6 @@ class BriefingForm extends Component
     {
         $this->validate();
 
-        /** @var \Statamic\Entries\Entry $entry */
         $entry = Entry::make();
         $entry->collection('briefings')
             ->blueprint('briefing')
@@ -50,12 +56,18 @@ class BriefingForm extends Component
     protected function uniqueSlug(): string
     {
         $base = (string) Str::slug($this->title) ?: 'briefing';
+
+        $taken_slugs = Entry::query()
+            ->where('collection', 'briefings')
+            ->where('slug', 'like', $base . '%')
+            ->get()
+            ->map->slug()
+            ->all();
+
         $slug = $base;
         $suffix = 2;
 
-        /** @var \Statamic\Query\Builder $query */
-        $query = Entry::query();
-        while ($query->where('collection', 'briefings')->where('slug', $slug)->exists()) {
+        while (in_array($slug, $taken_slugs, true)) {
             $slug = $base . '-' . $suffix++;
         }
 

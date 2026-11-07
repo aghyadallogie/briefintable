@@ -1,0 +1,187 @@
+<?php
+
+namespace Tests\Feature;
+
+use App\Http\Controllers\BriefingController;
+use App\Support\BriefingsCache;
+use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Cache;
+use Statamic\Eloquent\Entries\EntryModel;
+use Statamic\Facades\Collection;
+use Statamic\Facades\Entry;
+use Tests\TestCase;
+
+class BriefingsListTest extends TestCase
+{
+    use RefreshDatabase;
+
+    private int $sequence = 0;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->withoutVite();
+
+        Collection::make('briefings')
+            ->routes('/briefings/{slug}')
+            ->template('briefings/show')
+            ->layout('layout')
+            ->save();
+
+        Cache::flush();
+    }
+
+    private function briefing(string $title, bool $published = true, string $content = 'Body text'): \Statamic\Entries\Entry
+    {
+        $entry = Entry::make()
+            ->collection('briefings')
+            ->slug(str($title)->slug().'-'.++$this->sequence)
+            ->published($published)
+            ->data(['title' => $title, 'content' => $content]);
+
+        $entry->save();
+
+        return $entry;
+    }
+
+    public function test_it_shows_an_empty_state_when_nothing_is_published(): void
+    {
+        $this->briefing('Hidden draft', published: false);
+
+        $this->get('/briefings')
+            ->assertOk()
+            ->assertSee('No briefings have been published yet.')
+            ->assertDontSee('Hidden draft');
+    }
+
+    public function test_it_lists_only_published_briefings_newest_first(): void
+    {
+        $this->travelTo(now()->subDays(2));
+        $this->briefing('Oldest');
+        $this->travelTo(now()->addDay());
+        $this->briefing('Newest');
+        $this->briefing('Draft one', published: false);
+        $this->travelBack();
+
+        $this->get('/briefings')
+            ->assertOk()
+            ->assertSeeInOrder(['Newest', 'Oldest'])
+            ->assertDontSee('Draft one');
+    }
+
+    public function test_excerpt_strips_html_and_is_truncated(): void
+    {
+        $this->briefing('Long one', content: '**Bold intro** '.str_repeat('word ', 100).'THE-END-MARKER');
+
+        $this->get('/briefings')
+            ->assertOk()
+            ->assertSee('Bold intro')
+            ->assertDontSee('<strong>', escape: false)
+            ->assertDontSee('<p>Bold intro', escape: false)
+            ->assertDontSee('THE-END-MARKER');
+    }
+
+    public function test_it_paginates_and_shows_pager_links(): void
+    {
+        foreach (range(1, BriefingController::PER_PAGE + 2) as $i) {
+            $this->travelTo(now()->addMinute());
+            $this->briefing("Briefing {$i}");
+        }
+        $this->travelBack();
+
+        $first = $this->get('/briefings')->assertOk();
+        $this->assertSame(BriefingController::PER_PAGE, substr_count($first->getContent(), '<article'));
+        $first->assertSee('Page 1 of 2')->assertSee('Older');
+
+        $second = $this->get('/briefings?page=2')->assertOk();
+        $this->assertSame(2, substr_count($second->getContent(), '<article'));
+        $second->assertSee('Page 2 of 2')->assertSee('Newer');
+    }
+
+    public function test_cached_pager_links_do_not_leak_the_host_that_rendered_them(): void
+    {
+        foreach (range(1, BriefingController::PER_PAGE + 1) as $i) {
+            $this->briefing("Briefing {$i}");
+        }
+
+        // First visitor warms the cache from one host (e.g. a script or a different port)...
+        $this->get('http://first-host.test:8080/briefings')->assertOk();
+
+        // ...the next visitor, on another host, must get working relative links.
+        $this->get('http://second-host.test/briefings')
+            ->assertOk()
+            ->assertSee('href="?page=2"', escape: false)
+            ->assertDontSee('first-host.test');
+
+        $this->get('http://second-host.test/briefings?page=2')
+            ->assertOk()
+            ->assertSee('href="?page=1"', escape: false)
+            ->assertDontSee('first-host.test');
+    }
+
+    public function test_out_of_range_pages_404_and_junk_falls_back_to_page_one(): void
+    {
+        $this->briefing('Only one');
+
+        $this->get('/briefings?page=2')->assertNotFound();
+        $this->get('/briefings?page=99999')->assertNotFound();
+        $this->get('/briefings?page=abc')->assertOk()->assertSee('Only one');
+        $this->get('/briefings?page=0')->assertOk()->assertSee('Only one');
+    }
+
+    public function test_the_rendered_list_is_served_from_cache(): void
+    {
+        $entry = $this->briefing('Original title');
+
+        $this->get('/briefings')->assertSee('Original title');
+
+        // Change the row behind Statamic's back (no event fired) - a cached page must not notice.
+        $model = EntryModel::query()->findOrFail($entry->id());
+        $model->data = array_merge($model->data, ['title' => 'Sneaky edit']);
+        $model->save();
+
+        $this->get('/briefings')
+            ->assertSee('Original title')
+            ->assertDontSee('Sneaky edit');
+    }
+
+    public function test_saving_a_briefing_invalidates_the_cache(): void
+    {
+        $entry = $this->briefing('Original title');
+        $this->get('/briefings')->assertSee('Original title');
+
+        $entry->set('title', 'Edited title')->save();
+
+        $this->get('/briefings')
+            ->assertSee('Edited title')
+            ->assertDontSee('Original title');
+    }
+
+    public function test_publishing_and_deleting_invalidate_the_cache(): void
+    {
+        $draft = $this->briefing('Soon public', published: false);
+        $this->get('/briefings')->assertDontSee('Soon public');
+
+        $draft->published(true)->save();
+        $this->get('/briefings')->assertSee('Soon public');
+
+        $draft->delete();
+        $this->get('/briefings')->assertDontSee('Soon public');
+    }
+
+    public function test_changes_in_other_collections_do_not_invalidate_the_cache(): void
+    {
+        Collection::make('pages')->save();
+        $key = BriefingsCache::listKey(1, BriefingController::PER_PAGE);
+
+        Entry::make()->collection('pages')->slug('about')->data(['title' => 'About'])->save();
+
+        $this->assertSame($key, BriefingsCache::listKey(1, BriefingController::PER_PAGE));
+    }
+
+    public function test_the_create_page_requires_login(): void
+    {
+        $this->get('/briefings/create')->assertRedirect();
+    }
+}
