@@ -18,6 +18,10 @@ return [
     'configs' => [
 
         'default' => [
+            // User-written content is rendered on public pages, so never pass raw HTML
+            // or javascript:/data: links through. See tests/Feature/BriefingsXssTest.php.
+            'html_input' => 'escape',
+            'allow_unsafe_links' => false,
             // 'heading_permalink' => [
             //     'symbol' => '#',
             // ],

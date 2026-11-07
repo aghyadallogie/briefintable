@@ -50,6 +50,10 @@ The rendered list is wrapped in Statamic's `{{ cache }}` tag. The key is `briefi
 - Pager links are relative (`?page=N`) on purpose, because the cached HTML must not contain the host that rendered it.
 - Change the page size with `BriefingController::PER_PAGE`.
 
+### Output escaping
+
+Titles and bodies are user input shown on public (and cached) pages. Plain-text fields go through `| sanitize` in the templates; markdown is rendered with `html_input: escape` and `allow_unsafe_links: false` in [`config/statamic/markdown.php`](config/statamic/markdown.php), so raw HTML and `javascript:` links come out as text. This applies to every markdown field, including in the CP. Any new template that prints user data needs the same treatment ([`BriefingsXssTest`](tests/Feature/BriefingsXssTest.php)).
+
 ## Testing and code style
 
 ```bash
@@ -62,5 +66,4 @@ vendor/bin/pint                # format
 ## Known gaps
 
 - No authorization beyond "logged in": any user can create and publish a briefing.
-- `content` is markdown rendered as HTML without sanitising.
 - Users are flat files, so they don't survive a host with an ephemeral disk.

@@ -17,5 +17,10 @@ abstract class TestCase extends BaseTestCase
         if (config('database.default') !== 'sqlite') {
             throw new RuntimeException('Refusing to run tests against the "'.config('database.default').'" connection. Check phpunit.xml.');
         }
+
+        // Same idea for the cache: tests call Cache::flush(), which must never hit a shared store.
+        if (config('cache.default') !== 'array') {
+            throw new RuntimeException('Refusing to run tests against the "'.config('cache.default').'" cache store. Check phpunit.xml.');
+        }
     }
 }
