@@ -22,11 +22,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        // Any change to a briefing (create, edit, publish toggle, delete) invalidates the cached list.
+        // Draft-to-draft saves don't invalidates the cached list.
         Event::listen([EntrySaved::class, EntryDeleted::class], function (EntrySaved|EntryDeleted $event) {
-            if ($event->entry->collectionHandle() === 'briefings') {
-                BriefingsCache::bump();
-            }
+            BriefingsCache::bumpFor($event->entry);
         });
 
         Authenticate::redirectUsing(function () {

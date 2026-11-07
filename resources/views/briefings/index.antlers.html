@@ -4,7 +4,7 @@
     </div>
 
     {{# Same HTML for every visitor, so safe to cache. Key is version-stamped; see App\Support\BriefingsCache. #}}
-    {{ cache :key="cache_key" for="1 day" }}
+    {{ cache :key="cache_key" :for="cache_ttl" }}
         <div class="space-y-6">
             {{ collection:briefings sort="created_at:desc" paginate="{per_page}" as="items" }}
                 {{ if no_results }}

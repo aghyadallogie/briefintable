@@ -1,48 +1,66 @@
-<p align="center">
-<picture>
-    <source srcset="https://statamic.com/assets/branding/squircle/statamic-logo-lime-white.svg" media="(prefers-color-scheme: dark)">
-    <img align="center" width="350" alt="Statamic Logo" src="https://statamic.com/assets/branding/squircle/statamic-logo-lime.svg">
-</picture>
-</p>
+# Briefintable
 
-## About Statamic
+A small briefings app: anyone can read published briefings, and logged-in users can write new ones.
 
-Statamic is the flat-first, Laravel + Git powered CMS designed for building beautiful, easy to manage websites.
+**Stack:** Laravel 12 · Statamic 6 (+ Eloquent driver) · Livewire 4 · Tailwind 4 / Vite 7 · PHP ^8.2
 
-> [!NOTE]
-> This repository contains the code for a fresh Statamic project that is installed via the Statamic CLI tool.
->
-> The code for the Statamic Composer package itself can be found at the [Statamic core package repository][cms-repo].
+## Quick start
 
+```bash
+composer setup                 # install, .env, key, migrate, npm build
+php please make:user --super   # create a Statamic user (also your login for /cp)
+composer dev                   # app + queue + logs + Vite
+```
 
-## Learning Statamic
+Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:8000`).
 
-Statamic has extensive [documentation][docs]. We dedicate a significant amount of time and energy every day to improving them, so if something is unclear, feel free to open issues for anything you find confusing or incomplete. We are happy to consider anything you feel will make the docs and CMS better.
+| URL | What |
+|---|---|
+| `/briefings` | Public, paginated list of published briefings |
+| `/briefings/{slug}` | A single briefing |
+| `/briefings/create` | Livewire form (login required) |
+| `/cp` | Statamic control panel (also the login page) |
 
-## Support
+Configure the database in `.env` (`DB_CONNECTION=pgsql`, or `sqlite` for a throwaway local DB), then `php artisan migrate`.
 
-We provide official developer support on [Statamic Pro](https://statamic.com/pricing) projects. Community-driven support is available via [GitHub Discussions](https://github.com/statamic/cms/discussions) and in [Discord][discord].
+## How it fits together
 
+- **Reading** is Statamic + Antlers: [`BriefingController`](app/Http/Controllers/BriefingController.php) renders [`briefings/index.antlers.html`](resources/views/briefings/index.antlers.html); the single-briefing page is `briefings/show.antlers.html`.
+- **Writing** is Livewire: [`BriefingForm`](app/Livewire/BriefingForm.php) creates an entry in the `briefings` collection. "Publish immediately" sets Statamic's native `published` flag (there is no separate status field).
+- **Fields** are defined in the blueprint [`resources/blueprints/collections/briefings/briefing.yaml`](resources/blueprints/collections/briefings/briefing.yaml).
 
-## Contributing
+### Where data lives
 
-Thank you for considering contributing to Statamic! We simply ask that you review the [contribution guide][contribution] before you open issues or send pull requests.
+Set in [`config/statamic/eloquent-driver.php`](config/statamic/eloquent-driver.php):
 
+| Data | Stored in |
+|---|---|
+| Entries, collections | Database |
+| Blueprints, fieldsets, forms, assets, **users** | Files (users in `/users`, which is gitignored) |
 
-## Code of Conduct
+A collection that exists only in the database isn't in git, so a fresh environment needs it created (CP, or `php please eloquent:import-collections` from a YAML).
 
-In order to ensure that the Statamic community is welcoming to all and generally a rad place to belong, please review and abide by the [Code of Conduct](https://github.com/statamic/cms/wiki/Code-of-Conduct).
+### The list cache
 
+The rendered list is wrapped in Statamic's `{{ cache }}` tag. The key is `briefings.list.v{version}.n{perPage}.p{page}` ([`BriefingsCache`](app/Support/BriefingsCache.php)).
 
-## Important Links
+- The published count (used for the last-page / 404 check) is cached under the same version, so a cache hit makes no database queries.
+- Saving or deleting a briefing that is, or just was, published bumps the version through an event listener in [`AppServiceProvider`](app/Providers/AppServiceProvider.php), so new content shows up immediately. Draft-to-draft changes don't bump it.
+- Entries written straight to the database fire no event. Run `php artisan cache:clear` after that, after editing the list template, and on every deploy.
+- Pager links are relative (`?page=N`) on purpose, because the cached HTML must not contain the host that rendered it.
+- Change the page size with `BriefingController::PER_PAGE`.
 
-- [Statamic Main Site](https://statamic.com)
-- [Statamic Documentation][docs]
-- [Statamic Core Package Repo][cms-repo]
-- [Statamic Migrator](https://github.com/statamic/migrator)
-- [Statamic Discord][discord]
+## Testing and code style
 
-[docs]: https://statamic.dev/
-[discord]: https://statamic.com/discord
-[contribution]: https://github.com/statamic/cms/blob/master/CONTRIBUTING.md
-[cms-repo]: https://github.com/statamic/cms
+```bash
+composer test                  # PHPUnit; uses in-memory SQLite and the array cache
+vendor/bin/pint                # format
+```
+
+`tests/TestCase.php` refuses to run on any database other than SQLite, so tests can't wipe your real DB.
+
+## Known gaps
+
+- No authorization beyond "logged in": any user can create and publish a briefing.
+- `content` is markdown rendered as HTML without sanitising.
+- Users are flat files, so they don't survive a host with an ephemeral disk.

@@ -6,6 +6,7 @@ use App\Http\Controllers\BriefingController;
 use App\Support\BriefingsCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Statamic\Eloquent\Entries\EntryModel;
 use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
@@ -146,6 +147,34 @@ class BriefingsListTest extends TestCase
             ->assertDontSee('Sneaky edit');
     }
 
+    public function test_a_cache_hit_makes_no_database_queries(): void
+    {
+        $this->briefing('Cached briefing');
+        $this->get('/briefings')->assertOk(); // miss: runs the count and renders the list
+
+        DB::flushQueryLog();
+        DB::enableQueryLog();
+
+        $this->get('/briefings')->assertOk()->assertSee('Cached briefing');
+
+        $this->assertSame([], DB::getQueryLog());
+    }
+
+    public function test_the_cached_count_is_refreshed_when_a_public_briefing_is_added(): void
+    {
+        foreach (range(1, BriefingController::PER_PAGE) as $i) {
+            $this->briefing("Briefing {$i}");
+        }
+
+        // Exactly one page of briefings: the count (and so the page bounds) is now cached.
+        $this->get('/briefings')->assertOk();
+        $this->get('/briefings?page=2')->assertNotFound();
+
+        $this->briefing('One more');
+
+        $this->get('/briefings?page=2')->assertOk()->assertSee('Page 2 of 2');
+    }
+
     public function test_saving_a_briefing_invalidates_the_cache(): void
     {
         $entry = $this->briefing('Original title');
@@ -168,6 +197,83 @@ class BriefingsListTest extends TestCase
 
         $draft->delete();
         $this->get('/briefings')->assertDontSee('Soon public');
+    }
+
+    private function listKey(): string
+    {
+        return BriefingsCache::listKey(1, BriefingController::PER_PAGE);
+    }
+
+    public function test_creating_a_draft_does_not_invalidate_the_cache(): void
+    {
+        $key = $this->listKey();
+
+        $this->briefing('Just a draft', published: false);
+
+        $this->assertSame($key, $this->listKey());
+    }
+
+    public function test_editing_a_draft_does_not_invalidate_the_cache(): void
+    {
+        $id = $this->briefing('Draft', published: false)->id();
+        $key = $this->listKey();
+
+        // Re-load it like the CP would, so Statamic's "original" state comes from the database.
+        Entry::find($id)->set('title', 'Draft, edited')->save();
+
+        $this->assertSame($key, $this->listKey());
+    }
+
+    public function test_deleting_a_draft_does_not_invalidate_the_cache(): void
+    {
+        $id = $this->briefing('Draft', published: false)->id();
+        $key = $this->listKey();
+
+        Entry::find($id)->delete();
+
+        $this->assertSame($key, $this->listKey());
+    }
+
+    public function test_creating_a_published_briefing_invalidates_the_cache(): void
+    {
+        $key = $this->listKey();
+
+        $this->briefing('Public from day one');
+
+        $this->assertNotSame($key, $this->listKey());
+    }
+
+    public function test_publishing_a_draft_invalidates_the_cache(): void
+    {
+        $id = $this->briefing('Draft', published: false)->id();
+        $key = $this->listKey();
+
+        Entry::find($id)->published(true)->save();
+
+        $this->assertNotSame($key, $this->listKey());
+    }
+
+    public function test_unpublishing_a_briefing_invalidates_the_cache_and_hides_it(): void
+    {
+        $id = $this->briefing('Going private')->id();
+        $this->get('/briefings')->assertSee('Going private');
+        $key = $this->listKey();
+
+        // The saved entry is a draft after this, but it was public before - the list must still refresh.
+        Entry::find($id)->published(false)->save();
+
+        $this->assertNotSame($key, $this->listKey());
+        $this->get('/briefings')->assertDontSee('Going private');
+    }
+
+    public function test_deleting_a_published_briefing_invalidates_the_cache(): void
+    {
+        $id = $this->briefing('Public')->id();
+        $key = $this->listKey();
+
+        Entry::find($id)->delete();
+
+        $this->assertNotSame($key, $this->listKey());
     }
 
     public function test_changes_in_other_collections_do_not_invalidate_the_cache(): void

@@ -30,6 +30,40 @@ class BriefingsCacheTest extends TestCase
         $this->assertNotSame(BriefingsCache::listKey(1, 10), BriefingsCache::listKey(1, 3));
     }
 
+    public function test_the_published_count_is_resolved_once_per_version(): void
+    {
+        $calls = 0;
+        $resolve = function () use (&$calls) {
+            $calls++;
+
+            return 7;
+        };
+
+        $this->assertSame(7, BriefingsCache::publishedCount($resolve));
+        $this->assertSame(7, BriefingsCache::publishedCount($resolve));
+        $this->assertSame(1, $calls);
+
+        BriefingsCache::bump();
+
+        $this->assertSame(7, BriefingsCache::publishedCount($resolve));
+        $this->assertSame(2, $calls);
+    }
+
+    public function test_a_published_count_of_zero_is_cached_too(): void
+    {
+        $calls = 0;
+        $resolve = function () use (&$calls) {
+            $calls++;
+
+            return 0;
+        };
+
+        BriefingsCache::publishedCount($resolve);
+        BriefingsCache::publishedCount($resolve);
+
+        $this->assertSame(1, $calls);
+    }
+
     public function test_bump_changes_every_key(): void
     {
         $before = [BriefingsCache::listKey(1, 10), BriefingsCache::listKey(2, 10)];
