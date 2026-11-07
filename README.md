@@ -19,7 +19,7 @@ Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:800
 | `/briefings` | Public, paginated list of published briefings |
 | `/briefings/{slug}` | A single briefing |
 | `/briefings/create` | Livewire form (login required) |
-| `/cp` | Statamic control panel (also the login page) |
+| `/cp` | Statamic control panel (also the login page; a fresh login lands on `/briefings`, or on the page you were originally sent from) |
 
 Configure the database in `.env` (`DB_CONNECTION=pgsql`, or `sqlite` for a throwaway local DB), then `php artisan migrate`.
 

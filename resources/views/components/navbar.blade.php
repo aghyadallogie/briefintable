@@ -14,9 +14,11 @@
             @unless (request()->is('briefings/create'))
             <a href="/briefings/create" class="text-gray-600 hover:text-indigo-600 font-semibold">Create New</a>
             @endunless
+            {{-- Statamic's own logout route; sends people back to the public list afterwards. --}}
+            <a href="{{ cp_route('logout', ['redirect' => '/briefings']) }}" class="text-gray-600 hover:text-indigo-600">Logout</a>
             @else
             @unless (request()->is('cp'))
-            <a href="/cp" class="text-gray-600 hover:text-indigo-600">Login</a>
+            <a href="{{ route('login') }}" class="text-gray-600 hover:text-indigo-600">Login</a>
             @endunless
             @endauth
         </div>

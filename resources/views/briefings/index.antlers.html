@@ -20,7 +20,7 @@
                             By {{ author:name | sanitize }} | {{ updated_at format="M j, Y" }}
                         </div>
                         <div class="text-gray-700">
-                            {{ content | strip_tags | truncate:200 }}
+                            {{ content | strip_tags | sanitize | truncate:200 }}
                         </div>
                     </article>
                 {{ /items }}
