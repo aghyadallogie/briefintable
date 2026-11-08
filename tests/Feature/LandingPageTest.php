@@ -104,6 +104,18 @@ class LandingPageTest extends TestCase
             ->assertSee('4 briefings published');
     }
 
+    public function test_the_latest_cards_rise_in_one_after_another_and_lift_on_hover(): void
+    {
+        foreach (['One', 'Two', 'Three'] as $title) {
+            $this->briefing($title);
+        }
+
+        $html = $this->get('/')->assertOk()->getContent();
+
+        $this->assertSame(3, preg_match_all('/<article class="card card-lift rise-in[^"]*" style="--i: (\d+)">/', $html, $m));
+        $this->assertSame(['0', '1', '2'], $m[1]);
+    }
+
     public function test_it_has_a_friendly_empty_state_and_singular_count(): void
     {
         $this->get('/')->assertSee('The first briefings are on their way.')->assertSee('0 briefings published');

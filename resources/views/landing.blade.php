@@ -32,7 +32,9 @@
                         <div class="card absolute inset-x-0 top-10 p-5 shadow-lift">
                             <div class="flex items-center justify-between">
                                 <span class="badge badge-warning">Draft</span>
-                                <svg class="h-4 w-4 text-line-strong" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" /></svg>
+                                <svg class="h-4 w-4 text-line-strong" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5 21 12m0 0-7.5 7.5M21 12H3" />
+                                </svg>
                                 <span class="badge badge-success">Published</span>
                             </div>
                             <div class="mt-4 h-3 w-3/4 rounded bg-ink"></div>
@@ -54,22 +56,30 @@
                 <h2 id="why-heading" class="sr-only">Why Briefintable</h2>
                 <ul class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                     <li>
-                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" /></svg>
+                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75 11.25 15 15 9.75m-3-7.036A11.959 11.959 0 0 1 3.598 6 11.99 11.99 0 0 0 3 9.749c0 5.592 3.824 10.29 9 11.623 5.176-1.332 9-6.03 9-11.622 0-1.31-.21-2.571-.598-3.751h-.152c-3.196 0-6.1-1.248-8.25-3.285Z" />
+                        </svg>
                         <h3 class="mt-4 text-base">Reviewed before publishing</h3>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Contributors submit drafts. An editor publishes only what is ready.</p>
                     </li>
                     <li>
-                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" /></svg>
+                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12H12m-8.25 5.25h16.5" />
+                        </svg>
                         <h3 class="mt-4 text-base">Easy to scan</h3>
                         <p class="mt-2 text-sm leading-relaxed text-muted">A clear title and a short preview on every briefing, so you decide in seconds what to read.</p>
                     </li>
                     <li>
-                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" /></svg>
+                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13l-2.685.8.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                        </svg>
                         <h3 class="mt-4 text-base">Your drafts, your control</h3>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Edit or delete your own drafts any time before an editor publishes them.</p>
                     </li>
                     <li>
-                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" /></svg>
+                        <svg class="h-7 w-7 text-primary" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9.004 9.004 0 0 0 8.716-6.747M12 21a9.004 9.004 0 0 1-8.716-6.747M12 21c2.485 0 4.5-4.03 4.5-9S14.485 3 12 3m0 18c-2.485 0-4.5-4.03-4.5-9S9.515 3 12 3m0 0a8.997 8.997 0 0 1 7.843 4.582M12 3a8.997 8.997 0 0 0-7.843 4.582m15.686 0A11.953 11.953 0 0 1 12 10.5c-2.998 0-5.74-1.1-7.843-2.918m15.686 0A8.959 8.959 0 0 1 21 12c0 .778-.099 1.533-.284 2.253m0 0A17.919 17.919 0 0 1 12 16.5c-3.162 0-6.133-.815-8.716-2.247m0 0A9.015 9.015 0 0 1 3 12c0-1.605.42-3.113 1.157-4.418" />
+                        </svg>
                         <h3 class="mt-4 text-base">Open to read</h3>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Published briefings are public. No account needed to read them.</p>
                     </li>
@@ -83,18 +93,24 @@
                 <h2 id="how-heading" class="text-2xl">How it works</h2>
                 <ol class="mt-8 grid gap-6 md:grid-cols-3">
                     <li class="card p-6">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">1</span>
-                        <h3 class="mt-4 text-base">Write</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">1</span>
+                            <h3 class="text-base">Write</h3>
+                        </div>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Log in and write a briefing. It is saved as a draft that only you can see.</p>
                     </li>
                     <li class="card p-6">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">2</span>
-                        <h3 class="mt-4 text-base">Review</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">2</span>
+                            <h3 class="text-base">Review</h3>
+                        </div>
                         <p class="mt-2 text-sm leading-relaxed text-muted">An editor checks it in the control panel and publishes it when it is ready.</p>
                     </li>
                     <li class="card p-6">
-                        <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">3</span>
-                        <h3 class="mt-4 text-base">Read</h3>
+                        <div class="flex items-center gap-3">
+                            <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">3</span>
+                            <h3 class="text-base">Read</h3>
+                        </div>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Published briefings appear on the public list straight away.</p>
                     </li>
                 </ol>
@@ -115,7 +131,7 @@
                 @if (count($latest))
                 <div class="mt-6 grid gap-6 md:grid-cols-3">
                     @foreach ($latest as $briefing)
-                    <article class="card flex flex-col p-6">
+                    <article class="card card-lift rise-in flex flex-col p-6" style="--i: {{ $loop->index }}">
                         <p class="text-xs text-subtle">{{ $briefing['date'] }}</p>
                         <h3 class="mt-2 text-lg">
                             <a href="{{ $briefing['url'] }}" class="hover:text-primary">{{ $briefing['title'] }}</a>

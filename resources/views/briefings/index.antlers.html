@@ -12,7 +12,7 @@
                 {{ /if }}
 
                 {{ items }}
-                    <article class="card p-6">
+                    <article class="card card-lift rise-in p-6" style="--i: {{ index }}">
                         <h2 class="text-xl mb-2">
                             <a href="{{ url }}" class="text-primary hover:text-primary-hover">{{ title | sanitize }}</a>
                         </h2>

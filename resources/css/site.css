@@ -48,12 +48,44 @@
     --radius-card: 0.75rem;
     --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
     --shadow-lift: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Motion: items fade and rise into place, one after another. */
+    --animate-rise: rise 400ms ease-out both;
+    --animate-fade: fade 300ms ease-out both;
+    --rise-stagger: 100ms;
+
+    @keyframes fade {
+        from {
+            opacity: 0;
+        }
+
+        to {
+            opacity: 1;
+        }
+    }
+
+    @keyframes rise {
+        from {
+            opacity: 0;
+            transform: translateY(0.5rem);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 }
 
 @layer base {
     :root {
         /* Livewire's loading bar follows the brand colour. */
         --livewire-progress-bar-color: var(--color-primary);
+    }
+
+    /* Alpine hides x-cloak elements until it has started, so menus never flash open. */
+    [x-cloak] {
+        display: none !important;
     }
 
     body {
@@ -74,7 +106,7 @@
  */
 @layer components {
     .btn {
-        @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-2.5 text-sm font-medium transition-colors;
+        @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-2.5 text-sm font-medium transition-colors h-10;
         @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60;
     }
 
@@ -90,7 +122,6 @@
         @apply bg-surface text-ink ring-1 ring-line-strong ring-inset hover:bg-page;
     }
 
-    /* For use on a solid primary background. */
     .btn-inverse {
         @apply bg-surface text-primary hover:bg-primary-soft focus-visible:ring-surface focus-visible:ring-offset-primary;
     }
@@ -99,14 +130,47 @@
         @apply rounded-card border border-line bg-surface shadow-card;
     }
 
-    /* Small square icon-only buttons and links (always give them an aria-label). */
     .icon-btn {
-        @apply inline-flex h-9 w-9 items-center justify-center rounded-control text-muted transition-colors hover:bg-page hover:text-primary;
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-control text-muted hover:bg-page hover:text-primary;
         @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60;
     }
 
     .icon-btn-danger {
         @apply hover:bg-danger-soft hover:text-danger-ink;
+    }
+
+    /*
+     * Entrance: fade and rise into place. Give each item `style="--i: <its index>"` to stagger them
+     * (the delay is capped at 8 steps so a long list never makes anyone wait). Pure CSS, so it needs
+     * no JavaScript. People whose system asks for reduced motion get a plain fade with no movement,
+     * rather than nothing at all, so the page still feels like it arrives gently.
+     */
+    .rise-in {
+        @apply animate-rise motion-reduce:animate-fade;
+        animation-delay: calc(min(var(--i, 0), 8) * var(--rise-stagger));
+    }
+
+    /* A small lift on hover. Uses `translate`, which composes with the entrance's `transform`. */
+    .card-lift {
+        @apply transition-[translate,box-shadow] duration-450 ease-out hover:-translate-y-0.5 hover:shadow-lift;
+        @apply motion-reduce:hover:translate-y-0;
+    }
+
+    /*
+     * Controls that appear only while the pointer is over their card (or something inside it has
+     * keyboard focus). The change is instant: no fade, no transition. They are hidden only on devices
+     * that can really hover with a mouse, so touch screens, which have no hover, always show them.
+     * Hidden with opacity rather than display, so they stay focusable and tabbing into the card reveals them.
+     */
+    @media (hover: hover) and (pointer: fine) {
+        .card-actions {
+            opacity: 0;
+        }
+
+        .card:hover .card-actions,
+        .card:focus-within .card-actions {
+            opacity: 1;
+        }
     }
 
     .link {
@@ -131,10 +195,6 @@
     .menu-toggle {
         @apply flex cursor-pointer list-none items-center rounded-control text-ink transition-colors hover:text-primary;
         @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
-    }
-
-    .menu-toggle::-webkit-details-marker {
-        display: none;
     }
 
     .menu-panel {

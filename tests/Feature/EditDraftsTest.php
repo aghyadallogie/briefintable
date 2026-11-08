@@ -356,6 +356,9 @@ class EditDraftsTest extends TestCase
 
         // In the top-right corner, before the title rather than after the excerpt.
         $this->assertStringContainsString('absolute top-4 right-4', $article);
+        // Shown only on hover or focus of the card (see .card-actions in site.css), with no fade.
+        $this->assertStringContainsString('<div class="card-actions absolute top-4 right-4', $article);
+        $this->assertStringNotContainsString('transition', $article);
         $this->assertLessThan(strpos($article, '<h2'), strpos($article, 'aria-label="Edit draft"'));
         $this->assertLessThan(strpos($article, '<h2'), strpos($article, 'aria-label="Delete draft"'));
         $this->assertStringContainsString('pr-20', $article, 'The title must not run under the icons.');

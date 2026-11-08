@@ -46,6 +46,23 @@ class BriefingsListTest extends TestCase
         return $entry;
     }
 
+    public function test_cards_rise_in_one_after_another_and_lift_on_hover(): void
+    {
+        $this->travelTo(now()->subDays(3));
+        $this->briefing('Oldest');
+        $this->travelTo(now()->addDay());
+        $this->briefing('Middle');
+        $this->travelTo(now()->addDay());
+        $this->briefing('Newest');
+        $this->travelBack();
+
+        $html = $this->get('/briefings')->assertOk()->getContent();
+
+        // Each card carries its position, so the CSS can stagger the entrance.
+        $this->assertSame(3, preg_match_all('/<article class="card card-lift rise-in[^"]*" style="--i: (\d+)">/', $html, $m));
+        $this->assertSame(['0', '1', '2'], $m[1]);
+    }
+
     public function test_the_page_title_is_briefings(): void
     {
         $this->get('/briefings')->assertOk()->assertSee('<title>Briefings</title>', false);

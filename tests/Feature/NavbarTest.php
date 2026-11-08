@@ -208,13 +208,65 @@ class NavbarTest extends TestCase
         $this->assertSame(2, preg_match_all('/>\s*Write a briefing\s*<\/a>/', $html));
     }
 
-    public function test_menus_are_native_details_elements_for_the_script_to_enhance(): void
+    public function test_the_menus_are_alpine_dropdowns_with_table_medias_transition_classes(): void
     {
         $html = $this->actingAs($this->writer())->get('/briefings')->getContent();
 
-        $this->assertSame(2, substr_count($html, '<details data-menu'), 'Account menu and phone menu.');
+        $this->assertStringNotContainsString('<details', $html);
+
+        // One piece of state for the header: one menu open at a time, closed by an outside click or Escape.
+        $this->assertStringContainsString('x-data="{ menu: null }"', $html);
+        $this->assertStringContainsString('@click.outside="menu = null"', $html);
+        $this->assertStringContainsString('@keydown.escape.window=', $html);
+
+        // Account menu and phone menu both animate: 150ms ease-out in, 100ms ease-in out.
+        foreach ([
+            'x-transition:enter="transition ease-out duration-150"' => 2,
+            'x-transition:enter-end="opacity-100 scale-100"' => 1,
+            'x-transition:enter-end="opacity-100 translate-y-0"' => 1,
+            'x-transition:leave="transition ease-in duration-100"' => 2,
+            'x-transition:leave-end="opacity-0 scale-95"' => 1,
+            'x-transition:leave-end="opacity-0 -translate-y-2"' => 1,
+        ] as $attribute => $times) {
+            $this->assertSame($times, substr_count($html, $attribute), "Expected {$times}x {$attribute}");
+        }
+
+        // Closed until Alpine starts, announced correctly to assistive tech, and no flash of open menus.
+        $this->assertSame(2, preg_match_all('/<div id="(?:account|mobile)-menu" x-cloak x-show=/', $html));
+        $this->assertSame(2, substr_count($html, 'aria-expanded="false" :aria-expanded='));
+        $this->assertStringContainsString('origin-top-right', $html);
+    }
+
+    public function test_a_guest_only_has_the_phone_menu(): void
+    {
+        $html = $this->get('/briefings')->getContent();
+
+        $this->assertStringNotContainsString('id="account-menu"', $html);
+        $this->assertStringContainsString('id="mobile-menu"', $html);
+        $this->assertSame(1, substr_count($html, 'x-transition:enter="transition ease-out duration-150"'));
+    }
+
+    public function test_skip_link_and_main_landmark_are_present(): void
+    {
+        $html = $this->actingAs($this->writer())->get('/briefings')->getContent();
+
         $this->assertStringContainsString('href="#content"', $html, 'Skip link');
         $this->assertStringContainsString('<main id="content">', $html);
+    }
+
+    public function test_alpine_is_wired_up_without_clashing_with_livewire(): void
+    {
+        $js = file_get_contents(resource_path('js/site.js'));
+        $package = json_decode(file_get_contents(base_path('package.json')), true);
+
+        $this->assertArrayHasKey('alpinejs', $package['dependencies'] ?? $package['devDependencies'] ?? []);
+        // Livewire ships its own Alpine; starting a second copy would break both.
+        $this->assertStringContainsString('if (!window.Alpine)', $js);
+        $this->assertStringContainsString("import('alpinejs')", $js);
+        $this->assertStringContainsString('Alpine.start()', $js);
+
+        $css = file_get_contents(resource_path('css/site.css'));
+        $this->assertStringContainsString('[x-cloak]', $css);
     }
 
     public function test_pages_built_on_the_blade_layout_have_the_skip_target_too(): void

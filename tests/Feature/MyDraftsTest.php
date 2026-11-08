@@ -49,6 +49,18 @@ class MyDraftsTest extends TestCase
         $this->get(route('drafts.index'))->assertRedirect(cp_route('login'));
     }
 
+    public function test_draft_cards_rise_in_one_after_another_and_lift_on_hover(): void
+    {
+        foreach (['One', 'Two', 'Three'] as $title) {
+            $this->briefing($title, 'me');
+        }
+
+        $html = $this->actingAs($this->user())->get(route('drafts.index'))->getContent();
+
+        $this->assertSame(3, preg_match_all('/<article class="card card-lift rise-in[^"]*" style="--i: (\d+)">/', $html, $m));
+        $this->assertSame(['0', '1', '2'], $m[1]);
+    }
+
     public function test_the_page_title_is_my_drafts(): void
     {
         $this->actingAs($this->user())

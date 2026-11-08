@@ -48,9 +48,42 @@ class ThemeTokensTest extends TestCase
         }
 
         foreach (['.btn', '.btn-primary', '.btn-secondary', '.card', '.field', '.badge', '.alert', '.link',
-            '.icon-btn', '.icon-btn-danger', '.nav-link', '.nav-link-active', '.menu-toggle', '.menu-panel', '.menu-item', '.skip-link'] as $component) {
+            '.rise-in', '.card-lift', '.card-actions', '.icon-btn', '.icon-btn-danger', '.nav-link', '.nav-link-active', '.menu-toggle', '.menu-panel', '.menu-item', '.skip-link'] as $component) {
             $this->assertStringContainsString($component.' {', $css, "Missing component class {$component}.");
         }
+    }
+
+    public function test_motion_is_defined_once_and_respects_reduced_motion(): void
+    {
+        $css = File::get(resource_path('css/site.css'));
+
+        $this->assertStringContainsString('--animate-rise:', $css);
+        $this->assertStringContainsString('--rise-stagger:', $css);
+        $this->assertStringContainsString('@keyframes rise', $css);
+        $this->assertStringContainsString('--animate-fade:', $css);
+        $this->assertStringContainsString('@keyframes fade', $css);
+        $this->assertStringContainsString('motion-reduce:animate-fade', $css, 'Reduced motion gets a fade with no movement, not nothing.');
+        $this->assertStringNotContainsString('motion-reduce:animate-none', $css);
+        $this->assertStringContainsString('motion-reduce:hover:translate-y-0', $css, 'The hover lift must not move for reduced motion.');
+    }
+
+    public function test_card_actions_appear_on_hover_or_focus_instantly_with_no_transition(): void
+    {
+        $css = File::get(resource_path('css/site.css'));
+
+        // Hidden only for fine pointers that can hover, so touch screens always see the controls.
+        $this->assertStringContainsString('@media (hover: hover) and (pointer: fine)', $css);
+        $this->assertStringContainsString('.card:hover .card-actions', $css);
+        $this->assertStringContainsString('.card:focus-within .card-actions', $css, 'Tabbing into a card must reveal its controls.');
+        // Hidden with opacity (still focusable), never display:none.
+        $this->assertMatchesRegularExpression('/\.card-actions\s*\{\s*opacity:\s*0;/', $css);
+
+        // The change is instant: no transition on the actions or on the icon buttons.
+        $this->assertSame(1, preg_match('/\.card-actions \{(.*?)\n        \}/s', $css, $actions), 'Missing .card-actions.');
+        $this->assertStringNotContainsString('transition', $actions[1]);
+        $this->assertSame(1, preg_match('/\.icon-btn \{(.*?)\n    \}/s', $css, $block), 'Missing .icon-btn.');
+        $this->assertStringNotContainsString('transition', $block[1]);
+        $this->assertStringNotContainsString('opacity', str_replace('disabled:opacity-60', '', $block[1]));
     }
 
     public function test_every_component_class_used_in_a_view_is_defined(): void

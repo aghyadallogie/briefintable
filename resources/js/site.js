@@ -1,39 +1,12 @@
-// Navbar menus are native <details data-menu> elements, so they work without JavaScript.
-// This only adds the usual dropdown behaviour: close on an outside click or Escape,
-// and keep one menu open at a time.
-const menus = () => document.querySelectorAll('details[data-menu]');
-
-document.addEventListener('click', (event) => {
-    menus().forEach((menu) => {
-        if (menu.open && !menu.contains(event.target)) {
-            menu.open = false;
-        }
+// Alpine powers the navbar menus (open/close state and their enter/leave transitions).
+//
+// Pages built on the Blade layout load Livewire, which ships and starts its own copy of Alpine
+// and sets window.Alpine before this deferred module runs. Starting a second copy would break
+// both, so we only load and start Alpine ourselves on pages without Livewire (the Antlers pages).
+// The dynamic import keeps Alpine out of the bundle that Livewire pages download.
+if (!window.Alpine) {
+    import('alpinejs').then(({ default: Alpine }) => {
+        window.Alpine = Alpine;
+        Alpine.start();
     });
-});
-
-document.addEventListener('keydown', (event) => {
-    if (event.key !== 'Escape') {
-        return;
-    }
-
-    menus().forEach((menu) => {
-        if (menu.open) {
-            menu.open = false;
-            menu.querySelector('summary')?.focus();
-        }
-    });
-});
-
-document.addEventListener(
-    'toggle',
-    (event) => {
-        if (event.target.matches?.('details[data-menu]') && event.target.open) {
-            menus().forEach((menu) => {
-                if (menu !== event.target) {
-                    menu.open = false;
-                }
-            });
-        }
-    },
-    true,
-);
+}
