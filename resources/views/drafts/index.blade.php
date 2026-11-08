@@ -10,6 +10,12 @@
         </div>
         @endif
 
+        @if (session()->has('error'))
+        <div class="mb-6 p-4 text-red-700 bg-red-100 rounded-lg" role="alert">
+            {{ session('error') }}
+        </div>
+        @endif
+
         <div class="space-y-6">
             @forelse ($drafts as $draft)
             <article class="p-6 bg-white rounded-lg shadow border border-gray-100">
@@ -27,7 +33,7 @@
                 <div class="mt-4 flex items-center gap-4 text-sm">
                     <a href="{{ route('drafts.edit', $draft->id()) }}" class="text-indigo-600 hover:text-indigo-800">Edit</a>
                     <form method="POST" action="{{ route('drafts.destroy', $draft->id()) }}"
-                        onsubmit="return confirm('Delete this draft permanently? This cannot be undone.')">
+                        onsubmit="if (!confirm('Delete this draft permanently? This cannot be undone.')) return false; this.querySelector('button').disabled = true;">
                         @csrf
                         @method('DELETE')
                         <button type="submit" class="text-red-600 hover:text-red-800">Delete</button>

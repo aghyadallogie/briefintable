@@ -3,11 +3,13 @@
 namespace Tests\Feature;
 
 use App\Livewire\BriefingForm;
+use App\Support\OwnDrafts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Livewire\Features\SupportLockedProperties\CannotUpdateLockedPropertyException;
 use Livewire\Livewire;
 use Statamic\Contracts\Auth\User as UserContract;
+use Statamic\Eloquent\Entries\EntryModel;
 use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
 use Statamic\Facades\User;
@@ -142,14 +144,53 @@ class EditDraftsTest extends TestCase
         $this->actingAs($this->admin())->delete(route('drafts.destroy', $id))->assertNotFound();
     }
 
-    public function test_a_published_briefing_cannot_be_edited_or_deleted_even_by_its_author(): void
+    public function test_a_published_briefing_cannot_be_edited_even_by_its_author(): void
     {
         $id = $this->draft('me', published: true);
         $this->actingAs($this->contributor());
 
-        $this->get(route('drafts.edit', $id))->assertNotFound();
+        $this->get(route('drafts.edit', $id))
+            ->assertRedirect(route('drafts.index'))
+            ->assertSessionHas('error', 'That briefing has been published, so it can no longer be edited here.');
+    }
+
+    public function test_a_published_briefing_cannot_be_deleted_even_by_its_author(): void
+    {
+        $id = $this->draft('me', published: true);
+        $this->actingAs($this->contributor());
+
+        $this->delete(route('drafts.destroy', $id))
+            ->assertRedirect(route('drafts.index'))
+            ->assertSessionHas('error', 'That briefing has been published, so it can no longer be deleted.');
+
+        $this->assertTrue($this->entry($id)->published());
+    }
+
+    public function test_someone_elses_published_briefing_is_still_just_a_404(): void
+    {
+        $id = $this->draft('me', published: true);
+
+        $this->actingAs($this->contributor('other'))->get(route('drafts.edit', $id))->assertNotFound();
+        $this->actingAs($this->contributor('other'))->delete(route('drafts.destroy', $id))->assertNotFound();
+    }
+
+    public function test_the_drafts_page_shows_the_error_message(): void
+    {
+        $id = $this->draft('me', published: true);
+
+        $this->actingAs($this->contributor())
+            ->followingRedirects()
+            ->delete(route('drafts.destroy', $id))
+            ->assertSee('so it can no longer be deleted');
+    }
+
+    public function test_deleting_twice_is_a_404_the_second_time(): void
+    {
+        $id = $this->draft();
+        $this->actingAs($this->contributor());
+
+        $this->delete(route('drafts.destroy', $id))->assertRedirect(route('drafts.index'));
         $this->delete(route('drafts.destroy', $id))->assertNotFound();
-        $this->assertNotNull($this->entry($id));
     }
 
     public function test_unknown_ids_are_a_404(): void
@@ -177,9 +218,64 @@ class EditDraftsTest extends TestCase
 
         $this->entry($id)->published(true)->save();
 
-        $component->set('title', 'Sneaky edit')->call('save')->assertNotFound();
+        $component->set('title', 'My careful rewrite')
+            ->call('save')
+            ->assertNoRedirect()
+            ->assertSee('published while you were editing it, so your changes were not saved')
+            ->assertSee('Your text is still below')
+            ->assertSet('title', 'My careful rewrite')
+            ->assertDontSee('Save changes')
+            ->call('save')
+            ->assertStatus(409);
 
-        $this->assertSame('Original title', $this->entry($id)->get('title'));
+        $entry = $this->entry($id);
+        $this->assertSame('Original title', $entry->get('title'));
+        $this->assertTrue($entry->published(), 'The admin\'s publish must survive the author\'s save.');
+    }
+
+    public function test_saving_a_draft_that_was_deleted_in_the_meantime_keeps_the_text(): void
+    {
+        $id = $this->draft();
+        $this->actingAs($this->contributor());
+        $component = $this->edit($id);
+
+        $this->entry($id)->delete();
+
+        $component->set('title', 'Words worth keeping')
+            ->call('save')
+            ->assertNoRedirect()
+            ->assertSee('This draft no longer exists, so your changes were not saved')
+            ->assertSet('title', 'Words worth keeping');
+
+        $this->assertNull($this->entry($id));
+    }
+
+    public function test_the_locked_read_sees_a_publish_that_a_cached_copy_does_not(): void
+    {
+        $id = $this->draft();
+        $user = $this->contributor();
+        $this->entry($id); // warm anything Statamic caches during a request
+
+        EntryModel::query()->whereKey($id)->update(['published' => true]);
+
+        $state = OwnDrafts::whileLocked($id, fn ($entry) => OwnDrafts::stateFor($user, $entry));
+
+        $this->assertSame(OwnDrafts::PUBLISHED, $state);
+    }
+
+    public function test_the_ownership_states(): void
+    {
+        $mine = $this->entry($this->draft('me'));
+        $live = $this->entry($this->draft('me', published: true));
+        $theirs = $this->entry($this->draft('other'));
+        $me = $this->contributor();
+
+        $this->assertSame(OwnDrafts::DRAFT, OwnDrafts::stateFor($me, $mine));
+        $this->assertSame(OwnDrafts::PUBLISHED, OwnDrafts::stateFor($me, $live));
+        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor($me, $theirs));
+        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor($this->admin(), $mine));
+        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor(null, $mine));
+        $this->assertSame(OwnDrafts::MISSING, OwnDrafts::stateFor($me, null));
     }
 
     public function test_saving_is_rechecked_if_the_session_user_changed(): void

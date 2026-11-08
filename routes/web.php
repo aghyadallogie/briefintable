@@ -29,7 +29,7 @@ Route::middleware(['web', 'auth'])->group(function () {
     // briefing titled "Drafts" would otherwise be shadowed by this route.
     Route::get('/my-drafts', MyDraftsController::class)->name('drafts.index');
 
-    // Ownership ("your own, still unpublished") is the `manage-own-draft` Gate, checked inside.
+    // Ownership ("your own, still unpublished") is App\Support\OwnDrafts, checked inside.
     Route::middleware('can:create briefings entries')->group(function () {
         Route::get('/my-drafts/{draft}/edit', BriefingForm::class)->name('drafts.edit');
         Route::delete('/my-drafts/{draft}', DeleteDraftController::class)->name('drafts.destroy');

@@ -7,6 +7,12 @@
         </div>
         @endif
 
+        @if ($blockedReason)
+        <div class="mb-4 p-4 text-red-700 bg-red-100 rounded-lg" role="alert">
+            {{ $blockedReason }} Your text is still below if you want to copy it.
+        </div>
+        @endif
+
         <form wire:submit="save" class="space-y-6">
             <!-- Title -->
             <div>
@@ -42,10 +48,12 @@
                     class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     Back
                 </a>
+                @unless ($blockedReason)
                 <button type="submit"
                     class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
                     {{ $editing ? 'Save changes' : 'Save Briefing' }}
                 </button>
+                @endunless
             </div>
         </form>
     </div>

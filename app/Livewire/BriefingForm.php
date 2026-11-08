@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Support\OwnDrafts;
 use App\Support\ReservedSlugs;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -31,6 +32,10 @@ class BriefingForm extends Component
     #[Locked]
     public ?string $draftId = null;
 
+    /** Set when an edit can no longer be saved. The form stays visible so the text can be copied. */
+    #[Locked]
+    public ?string $blockedReason = null;
+
     /**
      * Where the Back button goes: the page the user came from, captured once when the form opens.
      * Livewire's later requests all come from this page, so the referer is no use after that.
@@ -46,7 +51,18 @@ class BriefingForm extends Component
             return;
         }
 
-        $entry = $this->ownDraft($draft);
+        $entry = Entry::find($draft);
+        $state = OwnDrafts::stateFor(Auth::user(), $entry);
+
+        // 404 for anything that isn't yours, so ids don't reveal what exists.
+        abort_unless(in_array($state, [OwnDrafts::DRAFT, OwnDrafts::PUBLISHED], true), 404);
+
+        if ($state === OwnDrafts::PUBLISHED) {
+            session()->flash('error', 'That briefing has been published, so it can no longer be edited here.');
+            $this->redirect(route('drafts.index'));
+
+            return;
+        }
 
         $this->draftId = $entry->id();
         $this->title = (string) $entry->get('title');
@@ -67,8 +83,8 @@ class BriefingForm extends Component
         // Livewire actions are their own requests, so the route middleware doesn't cover them.
         abort_unless(Gate::allows('create briefings entries'), 403);
 
-        // Checked again on every save: the draft may have been published or deleted since the page loaded.
-        $draft = $this->draftId ? $this->ownDraft($this->draftId) : null;
+        // A blocked form (its draft went live or disappeared) stays blocked.
+        abort_if($this->blockedReason !== null, 409);
 
         $this->validate();
 
@@ -76,8 +92,8 @@ class BriefingForm extends Component
         // Everyone else (contributors) always saves a draft for an admin to publish in the CP.
         $publish = $this->published && $this->canPublish();
 
-        if ($draft) {
-            return $this->updateDraft($draft, $publish);
+        if ($this->draftId) {
+            return $this->updateDraft($publish);
         }
 
         $entry = Entry::make();
@@ -100,15 +116,39 @@ class BriefingForm extends Component
         $this->reset(['title', 'content', 'published']);
     }
 
-    /** The slug and author stay as they were; only the text (and, for publishers, the status) change. */
-    protected function updateDraft($draft, bool $publish)
+    /**
+     * The slug and author stay as they were; only the text (and, for publishers, the status) change.
+     *
+     * The ownership check happens inside the row lock, right before the write, so a draft an admin
+     * publishes at the same moment is never overwritten. If it went live or was deleted, nothing is
+     * saved and the form stays on screen with the author's text so they can copy it.
+     */
+    protected function updateDraft(bool $publish)
     {
-        $draft->published($publish)
-            ->data($draft->data()->merge([
-                'title' => $this->title,
-                'content' => $this->content,
-            ])->all())
-            ->save();
+        $state = OwnDrafts::whileLocked($this->draftId, function ($entry) use ($publish) {
+            $state = OwnDrafts::stateFor(Auth::user(), $entry);
+
+            if ($state === OwnDrafts::DRAFT) {
+                $entry->published($publish)
+                    ->data($entry->data()->merge([
+                        'title' => $this->title,
+                        'content' => $this->content,
+                    ])->all())
+                    ->save();
+            }
+
+            return $state;
+        });
+
+        abort_if($state === OwnDrafts::FOREIGN, 404);
+
+        if ($state === OwnDrafts::PUBLISHED || $state === OwnDrafts::MISSING) {
+            $this->blockedReason = $state === OwnDrafts::PUBLISHED
+                ? 'This briefing was published while you were editing it, so your changes were not saved.'
+                : 'This draft no longer exists, so your changes were not saved.';
+
+            return;
+        }
 
         session()->flash('success', $publish ? 'Briefing published.' : 'Draft updated.');
 
@@ -130,16 +170,6 @@ class BriefingForm extends Component
             && ! str_starts_with($path, '/cp/auth');
 
         return $usable ? $previous : url($fallback);
-    }
-
-    /** 404 (not 403) for anything that isn't the current user's own unpublished briefing. */
-    protected function ownDraft(string $id)
-    {
-        $entry = Entry::find($id);
-
-        abort_unless($entry && Gate::allows('manage-own-draft', $entry), 404);
-
-        return $entry;
     }
 
     protected function canPublish(): bool
@@ -177,6 +207,7 @@ class BriefingForm extends Component
         return view('livewire.briefing-form', [
             'canPublish' => $this->canPublish(),
             'editing' => $this->draftId !== null,
+            'blockedReason' => $this->blockedReason,
         ]);
     }
 }
