@@ -34,7 +34,7 @@ class BriefingController extends Controller
         return StatamicView::make('briefings.index')
             ->layout('layout')
             ->with([
-                'page_title' => 'Table',
+                'page_title' => 'Briefings',
                 'per_page' => self::PER_PAGE,
                 'cache_key' => BriefingsCache::listKey($page, self::PER_PAGE),
                 'cache_ttl' => BriefingsCache::CACHE_TTL,

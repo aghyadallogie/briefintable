@@ -49,6 +49,13 @@ class MyDraftsTest extends TestCase
         $this->get(route('drafts.index'))->assertRedirect(cp_route('login'));
     }
 
+    public function test_the_page_title_is_my_drafts(): void
+    {
+        $this->actingAs($this->user())
+            ->get(route('drafts.index'))
+            ->assertSee('<title>My Drafts</title>', false);
+    }
+
     public function test_it_shows_only_my_own_unpublished_briefings(): void
     {
         $this->briefing('My draft', 'me');

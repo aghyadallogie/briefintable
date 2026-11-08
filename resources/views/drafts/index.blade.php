@@ -1,4 +1,4 @@
-<x-layouts.app>
+<x-layouts.app title="My Drafts">
     <div class="max-w-4xl mx-auto p-6">
         <div class="mb-8">
             <h1 class="text-3xl">My Drafts</h1>

@@ -46,6 +46,11 @@ class BriefingsListTest extends TestCase
         return $entry;
     }
 
+    public function test_the_page_title_is_briefings(): void
+    {
+        $this->get('/briefings')->assertOk()->assertSee('<title>Briefings</title>', false);
+    }
+
     public function test_it_shows_an_empty_state_when_nothing_is_published(): void
     {
         $this->briefing('Hidden draft', published: false);
