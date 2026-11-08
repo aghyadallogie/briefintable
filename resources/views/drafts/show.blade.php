@@ -1,5 +1,5 @@
 <x-layouts.app :title="$draft->get('title')">
-    <div class="max-w-3xl mx-auto p-6 mt-10">
+    <div class="max-w-3xl mx-auto p-6 mt-10 rise-in">
         <a href="{{ route('drafts.index') }}" class="link mb-4 inline-block">&larr; Back to Drafts</a>
 
         <h1 class="text-4xl mb-4">{{ $draft->get('title') }}</h1>

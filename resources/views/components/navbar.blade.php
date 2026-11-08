@@ -7,24 +7,34 @@
     class="sticky top-0 z-50 border-b border-line bg-surface shadow-card">
     <a href="#content" class="skip-link">Skip to content</a>
 
-    {{-- Brand and links sit together on the left, and only the button and menus are pushed right (ml-auto).
-         That keeps the links in the same place on every page, whatever the right-hand side contains. --}}
-    <div class="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3 md:gap-8">
-        <!-- Brand: always home -->
-        <a href="{{ route('home') }}" class="shrink-0 font-heading text-xl font-bold text-primary">Briefintable</a>
+    {{-- The brand sits on the left. The links, the button and the menus form one group pushed to the right
+         (ml-auto). The write button keeps its space even when it is hidden (on the write form), so the links
+         stay put on every page. --}}
+    <div class="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
+        <!-- Brand: always home. Logo circle plus wordmark (the wordmark shows from the sm breakpoint up, like
+             table.briefings). The link has its own accessible name, so the logo and wordmark are decorative. -->
+        <a href="{{ route('home') }}" class="brand" aria-label="Briefintable, home" title="Briefintable">
+            <span class="logo-mark" aria-hidden="true"><span class="text-2xl">B</span></span>
+            <span class="brand-name" aria-hidden="true">Briefin'table</span>
+        </a>
 
-        <!-- Desktop links -->
-        <nav aria-label="Main" class="hidden items-center gap-6 md:flex">
-            @foreach ($links as $link)
-            <a href="{{ $link['url'] }}"
-                @if ($link['current']) aria-current="page" @endif
-                @class(['nav-link', 'nav-link-active' => $link['current']])>{{ $link['label'] }}</a>
-            @endforeach
-        </nav>
+        <div class="ml-auto flex items-center gap-3 md:gap-5">
+            <!-- Desktop links -->
+            <nav aria-label="Main" class="hidden items-center gap-6 md:flex">
+                @foreach ($links as $link)
+                <a href="{{ $link['url'] }}"
+                    @if ($link['current']) aria-current="page" @endif
+                    @class(['nav-link', 'nav-link-active'=> $link['current']])>{{ $link['label'] }}</a>
+                @endforeach
+            </nav>
 
-        <div class="ml-auto flex items-center gap-3">
             @if ($cta)
+            @if ($cta['hidden'])
+            {{-- Invisible but still taking its space; not focusable and not announced. --}}
+            <a href="{{ $cta['url'] }}" class="btn btn-primary btn-sm invisible hidden md:inline-flex" aria-hidden="true" tabindex="-1">{{ $cta['label'] }}</a>
+            @else
             <a href="{{ $cta['url'] }}" class="btn btn-primary btn-sm hidden md:inline-flex">{{ $cta['label'] }}</a>
+            @endif
             @endif
 
             @if ($account)
@@ -33,8 +43,9 @@
                 <button type="button" x-ref="accountToggle"
                     @click="menu = menu === 'account' ? null : 'account'"
                     aria-haspopup="true" aria-controls="account-menu" aria-expanded="false" :aria-expanded="menu === 'account'"
-                    class="menu-toggle">
-                    <span class="flex h-9 w-9 items-center justify-center rounded-full bg-primary-soft text-sm font-semibold text-primary">{{ $account['initial'] }}</span>
+                    class="menu-toggle px-3 py-2 hover:bg-page">
+                    {{-- User profile icon (outline head and shoulders), like table.briefings' account button. --}}
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
                     <span class="sr-only">Account menu</span>
                 </button>
                 <div id="account-menu" x-cloak x-show="menu === 'account'"
@@ -48,7 +59,7 @@
                     <p class="px-3 py-2 text-xs text-subtle">Signed in as</p>
                     <p class="px-3 pb-2 text-sm font-medium break-all text-ink">{{ $account['email'] }}</p>
                     <hr class="my-1 border-line">
-                    <a href="{{ route('drafts.index') }}" class="menu-item">My drafts</a>
+                    {{-- No "My drafts" here: it is already a link in the bar (and in the phone menu). --}}
                     <a href="{{ $account['logout'] }}" class="menu-item">Log out</a>
                 </div>
             </div>
@@ -60,8 +71,12 @@
                     @click="menu = menu === 'mobile' ? null : 'mobile'"
                     aria-controls="mobile-menu" aria-expanded="false" :aria-expanded="menu === 'mobile'"
                     class="menu-toggle p-2">
-                    <svg x-show="menu !== 'mobile'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" /></svg>
-                    <svg x-cloak x-show="menu === 'mobile'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" /></svg>
+                    <svg x-show="menu !== 'mobile'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                    </svg>
+                    <svg x-cloak x-show="menu === 'mobile'" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                    </svg>
                     <span class="sr-only">Menu</span>
                 </button>
                 <div id="mobile-menu" x-cloak x-show="menu === 'mobile'"
@@ -76,10 +91,10 @@
                         @foreach ($links as $link)
                         <a href="{{ $link['url'] }}"
                             @if ($link['current']) aria-current="page" @endif
-                            @class(['menu-item py-3', 'font-semibold text-primary' => $link['current']])>{{ $link['label'] }}</a>
+                            @class(['menu-item py-3', 'font-semibold text-primary'=> $link['current']])>{{ $link['label'] }}</a>
                         @endforeach
                     </nav>
-                    @if ($cta)
+                    @if ($cta && ! $cta['hidden'])
                     <a href="{{ $cta['url'] }}" class="btn btn-primary mt-3 w-full">{{ $cta['label'] }}</a>
                     @endif
                 </div>

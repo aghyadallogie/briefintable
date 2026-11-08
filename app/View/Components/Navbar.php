@@ -5,7 +5,6 @@ namespace App\View\Components;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Support\Str;
 use Illuminate\View\Component;
 
 /**
@@ -17,10 +16,15 @@ class Navbar extends Component
     /** @var list<array{label: string, url: string, current: bool}> */
     public array $links = [];
 
-    /** The single primary button: "Log in" for guests, "Write a briefing" for people who may write. */
+    /**
+     * The single primary button: "Log in" for guests, "Write a briefing" for people who may write.
+     * `hidden` means "keep the space but don't show it" (on the write form).
+     *
+     * @var array{label: string, url: string, hidden: bool}|null
+     */
     public ?array $cta = null;
 
-    /** @var array{email: string, initial: string, logout: string}|null */
+    /** @var array{email: string, logout: string}|null */
     public ?array $account = null;
 
     public function __construct()
@@ -44,10 +48,11 @@ class Navbar extends Component
         }
 
         if (! $signedIn) {
-            $this->cta = ['label' => 'Log in', 'url' => route('login')];
-        } elseif (Gate::allows('create briefings entries') && ! $request->is('briefings/create')) {
-            // Not offered on the write form itself: you are already there.
-            $this->cta = ['label' => 'Write a briefing', 'url' => route('briefings.create')];
+            $this->cta = ['label' => 'Log in', 'url' => route('login'), 'hidden' => false];
+        } elseif (Gate::allows('create briefings entries')) {
+            // On the write form itself you are already there, so the button is hidden. It is still rendered
+            // (invisible) so it keeps its place and the links beside it don't shift.
+            $this->cta = ['label' => 'Write a briefing', 'url' => route('briefings.create'), 'hidden' => $request->is('briefings/create')];
         }
 
         if ($signedIn) {
@@ -55,7 +60,6 @@ class Navbar extends Component
 
             $this->account = [
                 'email' => $email,
-                'initial' => Str::upper(Str::substr($email, 0, 1)) ?: '?',
                 // Statamic's own logout route; sends people back to the public list afterwards.
                 'logout' => cp_route('logout', ['redirect' => '/briefings']),
             ];

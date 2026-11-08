@@ -1,6 +1,7 @@
 <div class="max-w-4xl mx-auto p-6">
     <h1 class="text-3xl">{{ $editing ? 'Edit draft' : 'Create a Briefing' }}</h1>
-    <div class="card max-w-3xl mt-6 p-6">
+    {{-- Same entrance as the briefing cards (fade and rise; a plain fade for reduced motion). No hover lift: it is a form. --}}
+    <div class="card rise-in max-w-3xl mt-6 p-6">
         @if (session()->has('success'))
         <div class="alert alert-success mb-4">
             {{ session('success') }}
