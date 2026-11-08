@@ -1,4 +1,154 @@
 @import "tailwindcss";
+@import "@fontsource-variable/roboto-slab";
 @plugin "@tailwindcss/typography";
 @source "../views";
 @source "../../content";
+
+/*
+ * Design tokens
+ * -------------
+ * Every colour, font, radius and shadow the app uses is defined here, and the views only refer
+ * to these names (bg-primary, text-ink, rounded-card, ...). Change a value below and the whole
+ * app follows. Do not use raw palette classes (indigo-600, gray-500, ...) in views;
+ * tests/Feature/ThemeTokensTest.php fails if one slips in.
+ *
+ * Because this is a plain @theme block the values stay real CSS variables at runtime, so they can
+ * also be overridden per page or per theme, e.g. `:root { --color-primary: #1d4ed8; }`.
+ */
+@theme {
+    /* Fonts: Roboto Slab everywhere, as on table.media. Self-hosted through @fontsource-variable. */
+    --font-sans: "Roboto Slab Variable", ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --font-heading: var(--font-sans);
+
+    /* Brand */
+    --color-primary: #eb0b0b;
+    --color-primary-hover: #c20909;
+    --color-primary-soft: #fdeaea;
+    --color-primary-contrast: #ffffff;
+
+    /* Surfaces and text */
+    --color-page: #f3f4f6;
+    --color-surface: #ffffff;
+    --color-ink: oklch(0.21 0.034 264.665);
+    --color-muted: oklch(0.446 0.03 256.802);
+    --color-subtle: #5b6472;
+    --color-line: oklch(0.928 0.006 264.531);
+    --color-line-strong: oklch(0.872 0.01 258.338);
+
+    /* Status colours: a soft background and a readable text colour for each */
+    --color-success-soft: #dcfce7;
+    --color-success-ink: #166534;
+    --color-warning-soft: #fef9c3;
+    --color-warning-ink: #854d0e;
+    --color-danger-soft: #fee2e2;
+    --color-danger-ink: #b91c1c;
+
+    /* Shape and depth */
+    --radius-control: 0.5rem;
+    --radius-card: 0.75rem;
+    --shadow-card: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --shadow-lift: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+@layer base {
+    :root {
+        /* Livewire's loading bar follows the brand colour. */
+        --livewire-progress-bar-color: var(--color-primary);
+    }
+
+    body {
+        @apply bg-page font-sans text-ink antialiased;
+    }
+
+    h1,
+    h2,
+    h3,
+    h4 {
+        font-family: var(--font-heading);
+        @apply font-bold tracking-tight text-ink;
+    }
+}
+
+/*
+ * Components: the repeated pieces of the interface, so their look lives in one place.
+ */
+@layer components {
+    .btn {
+        @apply inline-flex items-center justify-center gap-2 rounded-control px-5 py-2.5 text-sm font-medium transition-colors;
+        @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 disabled:opacity-60;
+    }
+
+    .btn-sm {
+        @apply px-4 py-1.5;
+    }
+
+    .btn-primary {
+        @apply bg-primary text-primary-contrast hover:bg-primary-hover;
+    }
+
+    .btn-secondary {
+        @apply bg-surface text-ink ring-1 ring-line-strong ring-inset hover:bg-page;
+    }
+
+    /* For use on a solid primary background. */
+    .btn-inverse {
+        @apply bg-surface text-primary hover:bg-primary-soft focus-visible:ring-surface focus-visible:ring-offset-primary;
+    }
+
+    .card {
+        @apply rounded-card border border-line bg-surface shadow-card;
+    }
+
+    .link {
+        @apply font-medium text-primary hover:text-primary-hover;
+    }
+
+    .field {
+        @apply mt-1 block w-full rounded-control border border-line-strong bg-surface p-2 text-sm text-ink shadow-sm;
+        @apply focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none;
+    }
+
+    .badge {
+        @apply inline-block rounded px-2 py-0.5 text-xs font-medium;
+    }
+
+    .badge-success {
+        @apply bg-success-soft text-success-ink;
+    }
+
+    .badge-warning {
+        @apply bg-warning-soft text-warning-ink;
+    }
+
+    .alert {
+        @apply rounded-control p-4;
+    }
+
+    .alert-success {
+        @apply bg-success-soft text-success-ink;
+    }
+
+    .alert-danger {
+        @apply bg-danger-soft text-danger-ink;
+    }
+
+    /* Markdown bodies (briefing pages) follow the same tokens. */
+    .prose {
+        --tw-prose-body: var(--color-muted);
+        --tw-prose-headings: var(--color-ink);
+        --tw-prose-lead: var(--color-muted);
+        --tw-prose-links: var(--color-primary);
+        --tw-prose-bold: var(--color-ink);
+        --tw-prose-counters: var(--color-subtle);
+        --tw-prose-bullets: var(--color-subtle);
+        --tw-prose-hr: var(--color-line);
+        --tw-prose-quotes: var(--color-ink);
+        --tw-prose-quote-borders: var(--color-line-strong);
+        --tw-prose-captions: var(--color-subtle);
+        --tw-prose-code: var(--color-ink);
+        --tw-prose-pre-code: var(--color-ink);
+        --tw-prose-pre-bg: var(--color-page);
+        --tw-prose-th-borders: var(--color-line-strong);
+        --tw-prose-td-borders: var(--color-line);
+    }
+}

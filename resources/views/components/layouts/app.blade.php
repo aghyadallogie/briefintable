@@ -13,7 +13,7 @@
     @livewireStyles
 </head>
 
-<body class="bg-gray-50 min-h-screen">
+<body class="min-h-screen">
     <x-navbar />
     {{ $slot }}
     @livewireScripts

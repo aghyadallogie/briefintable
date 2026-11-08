@@ -12,6 +12,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Statamic\Events\EntryDeleted;
 use Statamic\Events\EntrySaved;
+use Statamic\Facades\Collection;
 use Statamic\Http\Controllers\CP\Auth\LoginController as StatamicLoginController;
 
 class AppServiceProvider extends ServiceProvider
@@ -43,6 +44,10 @@ class AppServiceProvider extends ServiceProvider
             fn ($attribute, $value) => ! ReservedSlugs::isReserved((string) $value),
             'That slug is reserved by the app. Please choose another.',
         );
+
+        // Entries don't expose a creation date to templates (`date` is empty because the collection
+        // has no dates, and `updated_at` changes when an admin publishes), so the bylines use this.
+        Collection::computed('briefings', 'written_at', fn ($entry) => $entry->model()?->created_at);
 
         Authenticate::redirectUsing(function () {
             if (Route::has('statamic.cp.login')) {

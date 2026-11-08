@@ -77,6 +77,14 @@ The rendered list is wrapped in Statamic's `{{ cache }}` tag. The key is `briefi
 
 Titles and bodies are user input shown on public (and cached) pages. Plain-text fields go through `| sanitize` in the templates; markdown is rendered with `html_input: escape` and `allow_unsafe_links: false` in [`config/statamic/markdown.php`](config/statamic/markdown.php), so raw HTML and `javascript:` links come out as text. This applies to every markdown field, including in the CP. Any new template that prints user data needs the same treatment ([`BriefingsXssTest`](tests/Feature/BriefingsXssTest.php)).
 
+### Theming
+
+The look (modelled on table.media: Roboto Slab, red accent, white bordered cards) is defined once, as design tokens in [`resources/css/site.css`](resources/css/site.css): fonts, colours (`primary`, `ink`, `muted`, `line`, `page`, `surface`, status colours), radii and shadows. Edit a value there and the whole app follows; they stay real CSS variables, so a page or theme can also override them (`:root { --color-primary: #1d4ed8; }`).
+
+- Views use the token names (`bg-primary`, `text-ink`, `rounded-card`) and a few component classes (`btn`, `btn-primary`, `btn-secondary`, `card`, `field`, `badge-*`, `alert-*`, `link`), never raw palette colours like `indigo-600`. [`ThemeTokensTest`](tests/Feature/ThemeTokensTest.php) fails if one slips in. `home.antlers.html` is the unused Statamic starter page and is exempt.
+- Roboto Slab is self-hosted through `@fontsource-variable/roboto-slab`, so no request goes to Google. Swap `--font-sans` / `--font-heading` to change it.
+- After changing CSS or views run `npm run build` (or keep `npm run dev` running).
+
 ## Testing and code style
 
 ```bash
