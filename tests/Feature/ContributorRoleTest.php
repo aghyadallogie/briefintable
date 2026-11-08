@@ -66,6 +66,14 @@ class ContributorRoleTest extends TestCase
         $this->assertSame(['create briefings entries'], $role->permissions()->all());
     }
 
+    public function test_the_form_card_rises_in_like_the_briefing_cards_but_does_not_lift_on_hover(): void
+    {
+        $html = $this->actingAs($this->contributor())->get('/briefings/create')->assertOk()->getContent();
+
+        $this->assertSame(1, preg_match('/<div class="card rise-in[^"]*"/', $html, $card), 'The form card should use the shared entrance.');
+        $this->assertStringNotContainsString('card-lift', $card[0], 'A form should not lift on hover.');
+    }
+
     public function test_a_contributor_can_open_the_form_without_a_publish_option(): void
     {
         $this->actingAs($this->contributor())

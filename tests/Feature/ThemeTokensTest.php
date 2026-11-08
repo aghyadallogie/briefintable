@@ -48,7 +48,7 @@ class ThemeTokensTest extends TestCase
         }
 
         foreach (['.btn', '.btn-primary', '.btn-secondary', '.card', '.field', '.badge', '.alert', '.link',
-            '.rise-in', '.card-lift', '.card-actions', '.icon-btn', '.icon-btn-danger', '.nav-link', '.nav-link-active', '.menu-toggle', '.menu-panel', '.menu-item', '.skip-link'] as $component) {
+            '.rise-in', '.card-lift', '.card-actions', '.logo-mark', '.brand', '.brand-name', '.icon-btn', '.icon-btn-danger', '.nav-link', '.nav-link-active', '.menu-toggle', '.menu-panel', '.menu-item', '.skip-link'] as $component) {
             $this->assertStringContainsString($component.' {', $css, "Missing component class {$component}.");
         }
     }
@@ -84,6 +84,54 @@ class ThemeTokensTest extends TestCase
         $this->assertSame(1, preg_match('/\.icon-btn \{(.*?)\n    \}/s', $css, $block), 'Missing .icon-btn.');
         $this->assertStringNotContainsString('transition', $block[1]);
         $this->assertStringNotContainsString('opacity', str_replace('disabled:opacity-60', '', $block[1]));
+    }
+
+    public function test_the_logo_is_a_themed_circle_with_no_transition(): void
+    {
+        $css = File::get(resource_path('css/site.css'));
+
+        $this->assertSame(1, preg_match('/\.logo-mark \{(.*?)\n    \}/s', $css, $logo), 'Missing .logo-mark.');
+
+        foreach (['rounded-full', 'bg-primary', 'text-primary-contrast', 'font-heading'] as $token) {
+            $this->assertStringContainsString($token, $logo[1], "The logo should use {$token} so it follows the theme.");
+        }
+
+        $this->assertStringNotContainsString('transition', $logo[1]);
+
+        // The wordmark and the brand link follow the theme too and don't animate.
+        $this->assertSame(1, preg_match('/\.brand-name \{(.*?)\n    \}/s', $css, $name), 'Missing .brand-name.');
+        $this->assertStringContainsString('font-heading', $name[1]);
+        $this->assertStringContainsString('text-ink', $name[1]);
+        $this->assertStringNotContainsString('transition', $name[1]);
+        $this->assertStringContainsString('.brand:hover .logo-mark', $css);
+    }
+
+    public function test_the_favicon_and_theme_colour_match_the_primary_colour_token(): void
+    {
+        $css = File::get(resource_path('css/site.css'));
+        // Anchored to the start of a line so the example in the file's header comment can't match.
+        $this->assertSame(1, preg_match('/^\s*--color-primary:\s*(#[0-9a-fA-F]{6});/m', $css, $token), '--color-primary must be a hex colour.');
+        $primary = strtolower($token[1]);
+
+        // The favicon is an image, so it cannot read the CSS variable and must be kept in sync by hand.
+        $svg = simplexml_load_file(public_path('favicon.svg'));
+        $this->assertNotFalse($svg, 'favicon.svg is not valid XML.');
+        $svg->registerXPathNamespace('s', 'http://www.w3.org/2000/svg');
+        $circle = $svg->xpath('//s:circle')[0] ?? null;
+        $letter = $svg->xpath('//s:text')[0] ?? null;
+
+        $this->assertNotNull($circle, 'favicon.svg needs a circle.');
+        $this->assertSame($primary, strtolower((string) $circle['fill']), 'favicon.svg fill must equal --color-primary.');
+        $this->assertSame('B', trim((string) $letter));
+
+        // Same for the browser theme colour. It lives in the shared head component that both layouts include.
+        $head = File::get(resource_path('views/components/head-assets.blade.php'));
+        $this->assertStringContainsString('<meta name="theme-color" content="'.$primary.'">', $head, 'theme-color must equal --color-primary.');
+        $this->assertStringContainsString('favicon.svg', $head, 'The SVG favicon must be linked.');
+
+        foreach (['views/layout.antlers.html', 'views/components/layouts/app.blade.php'] as $layout) {
+            $this->assertStringContainsString('<x-head-assets />', File::get(resource_path($layout)), "{$layout} must include the shared head.");
+        }
     }
 
     public function test_every_component_class_used_in_a_view_is_defined(): void

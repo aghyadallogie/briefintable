@@ -41,16 +41,26 @@ class NavbarTest extends TestCase
         return (bool) preg_match('/<a[^>]*aria-current="page"[^>]*>\s*'.preg_quote($label, '/').'\s*<\/a>/', $html);
     }
 
-    public function test_the_brand_is_always_the_app_name_linking_home(): void
+    public function test_the_brand_is_always_the_logo_linking_home(): void
     {
-        $this->get('/briefings')
-            ->assertSee('href="'.route('home').'"', false)
-            ->assertSee('Briefintable');
+        $brand = '<a href="'.route('home').'" class="brand" aria-label="Briefintable, home" title="Briefintable">';
 
-        $this->actingAs($this->writer())
-            ->get('/briefings')
-            ->assertSee('href="'.route('home').'"', false)
-            ->assertSee('Briefintable');
+        $this->get('/briefings')->assertSee($brand, false);
+        $this->actingAs($this->writer())->get('/briefings')->assertSee($brand, false);
+    }
+
+    public function test_the_brand_is_a_logo_circle_plus_wordmark_named_for_screen_readers(): void
+    {
+        $html = $this->get('/briefings')->getContent();
+
+        $this->assertSame(1, preg_match('/<a [^>]*class="brand".*?<\/a>/s', $html, $brand), 'Missing brand link.');
+
+        // The "B" circle and the wordmark are both inside the one link...
+        $this->assertMatchesRegularExpression('/<span class="logo-mark" aria-hidden="true"><span class="text-2xl">B<\/span><\/span>/', $brand[0]);
+        $this->assertMatchesRegularExpression('/<span class="brand-name" aria-hidden="true">[^<]+<\/span>/', $brand[0]);
+
+        // ...which is named by the link itself, so the decorative letter isn't read out as "B".
+        $this->assertStringContainsString('aria-label="Briefintable, home"', $brand[0]);
     }
 
     public function test_guests_see_briefings_and_a_login_button_but_no_account_menu(): void
@@ -86,13 +96,23 @@ class NavbarTest extends TestCase
     {
         $html = $this->actingAs($this->writer())->get('/briefings/create')->assertOk()->getContent();
 
-        // The navbar button (desktop and phone) is gone, but the rest of the navbar stays.
-        $this->assertSame(0, preg_match_all('/<a[^>]*btn-primary[^>]*>\s*Write a briefing\s*<\/a>/', $html));
+        // The desktop button is invisible, but still there so it keeps its space and nothing beside it moves.
+        // It is out of the tab order and hidden from screen readers.
+        $this->assertSame(1, preg_match_all('/<a [^>]*class="btn btn-primary btn-sm invisible hidden md:inline-flex" aria-hidden="true" tabindex="-1">\s*Write a briefing\s*<\/a>/', $html));
+        $this->assertSame(0, preg_match_all('/<a [^>]*class="btn btn-primary btn-sm hidden md:inline-flex"[^>]*>\s*Write a briefing/', $html), 'No visible button.');
+
+        // The phone menu has no button at all here.
+        preg_match('/id="mobile-menu".*?<\/header>/s', $html, $phone);
+        $this->assertStringNotContainsString('Write a briefing', $phone[0]);
+
+        // The rest of the navbar stays.
         $this->assertStringContainsString('My drafts', $html);
         $this->assertStringContainsString('Account menu', $html);
 
-        // And it is back everywhere else.
-        $this->actingAs($this->writer())->get('/my-drafts')->assertSee('Write a briefing');
+        // And it is a normal visible button everywhere else.
+        $other = $this->actingAs($this->writer())->get('/my-drafts')->getContent();
+        $this->assertSame(1, preg_match_all('/<a [^>]*class="btn btn-primary btn-sm hidden md:inline-flex"[^>]*>\s*Write a briefing\s*<\/a>/', $other));
+        $this->assertStringNotContainsString('class="btn btn-primary btn-sm invisible', $other);
     }
 
     public function test_someone_who_cannot_write_is_not_offered_the_write_button(): void
@@ -105,11 +125,43 @@ class NavbarTest extends TestCase
             ->assertDontSee('Write a briefing');
     }
 
-    public function test_the_account_initial_comes_from_the_email(): void
+    public function test_the_account_dropdown_has_only_the_email_and_log_out(): void
     {
         $html = $this->actingAs($this->writer())->get('/briefings')->getContent();
 
-        $this->assertMatchesRegularExpression('/rounded-full[^>]*>\s*N\s*<\/span>/', $html);
+        $this->assertSame(1, preg_match('/<div id="account-menu".*?<\/div>/s', $html, $menu), 'Missing account dropdown.');
+
+        // "My drafts" is already a link in the bar, so it is not repeated in the dropdown.
+        $this->assertStringNotContainsString('My drafts', $menu[0]);
+        $this->assertStringContainsString('Signed in as', $menu[0]);
+        $this->assertStringContainsString('nav@example.test', $menu[0]);
+        $this->assertSame(1, preg_match_all('/class="menu-item"/', $menu[0]), 'Only one action: Log out.');
+        $this->assertStringContainsString('Log out', $menu[0]);
+
+        // It is still reachable from the bar and from the phone menu.
+        $this->assertSame(1, preg_match('/aria-label="Main".*?<\/nav>/s', $html, $main));
+        $this->assertStringContainsString('My drafts', $main[0]);
+        $this->assertSame(1, preg_match('/aria-label="Mobile".*?<\/nav>/s', $html, $phone));
+        $this->assertStringContainsString('My drafts', $phone[0]);
+    }
+
+    public function test_the_account_button_is_a_user_profile_icon_not_an_initial(): void
+    {
+        $html = $this->actingAs($this->writer())->get('/briefings')->getContent();
+
+        $this->assertSame(1, preg_match('/<button [^>]*x-ref="accountToggle".*?<\/button>/s', $html, $button), 'Missing account button.');
+
+        // A decorative user icon (head and shoulders) plus a screen-reader label.
+        $this->assertMatchesRegularExpression('/<svg [^>]*aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" \/><circle cx="12" cy="7" r="4" \/><\/svg>/', $button[0]);
+        $this->assertStringContainsString('<span class="sr-only">Account menu</span>', $button[0]);
+
+        // No letter from the email in the button, and the email stays out of it entirely.
+        $this->assertStringNotContainsString('rounded-full', $button[0]);
+        $this->assertStringNotContainsString('nav@example.test', $button[0]);
+        $this->assertSame('Account menu', trim(strip_tags($button[0])));
+
+        // The email is still shown, inside the dropdown.
+        $this->assertStringContainsString('nav@example.test', $html);
     }
 
     public function test_the_logout_link_points_at_statamics_logout_and_returns_to_the_list(): void
@@ -169,31 +221,57 @@ class NavbarTest extends TestCase
 
     public function test_the_links_markup_is_identical_on_every_page_so_they_never_move(): void
     {
-        // Everything up to the end of the desktop links, with only the "current page" styling removed.
-        $leftSide = function (string $url, ?UserContract $user) {
-            $request = $user ? $this->actingAs($user) : $this;
-            $html = $request->get($url)->assertOk()->getContent();
+        // The whole desktop navbar (brand, links, button, account menu), normalised so that only the things
+        // that never change layout are ignored: the "current page" styling, and whether the button is shown or
+        // merely invisible (it keeps its space either way).
+        $desktop = function (string $url, UserContract $user) {
+            $html = $this->actingAs($user)->get($url)->assertOk()->getContent();
 
-            $this->assertSame(1, preg_match('/<header.*?aria-label="Main".*?<\/nav>/s', $html, $m), "No navbar on {$url}");
+            $this->assertSame(1, preg_match('/<header.*?<!-- Phone menu -->/s', $html, $m), "No navbar on {$url}");
 
-            // The right-hand group is pushed over with ml-auto instead of spreading the bar with justify-between.
-            $this->assertStringContainsString('ml-auto', $html);
-            $this->assertStringNotContainsString('justify-between gap', $m[0]);
+            // Brand on the left; links, button and menus are one group pushed to the right (ml-auto).
+            $this->assertStringContainsString('ml-auto flex items-center', $m[0]);
+            $this->assertStringNotContainsString('justify-between', $m[0]);
+            $this->assertLessThan(strpos($m[0], 'aria-label="Main"'), strpos($m[0], 'class="brand"'), 'The brand comes first, on the left.');
+            $this->assertGreaterThan(strpos($m[0], 'class="ml-auto'), strpos($m[0], 'aria-label="Main"'), 'The links are inside the right-hand group.');
 
-            return preg_replace(['/ aria-current="page"/', '/ nav-link-active/', '/\s+/'], ['', '', ' '], $m[0]);
+            return preg_replace(
+                ['/ aria-current="page"/', '/ nav-link-active/', '/btn-sm invisible hidden md:inline-flex" aria-hidden="true" tabindex="-1"/', '/\s+/'],
+                ['', '', 'btn-sm hidden md:inline-flex"', ' '],
+                $m[0],
+            );
         };
 
         $writer = $this->writer();
 
-        // With the write button (list, drafts, landing) and without it (the write form itself).
-        $baseline = $leftSide('/briefings', $writer);
+        // The list, My drafts and the landing page show the button; the write form hides it. Identical layout.
+        $baseline = $desktop('/briefings', $writer);
 
         foreach (['/my-drafts', '/briefings/create', '/'] as $url) {
-            $this->assertSame($baseline, $leftSide($url, $writer), "The links moved on {$url}.");
+            $this->assertSame($baseline, $desktop($url, $writer), "The links moved on {$url}.");
         }
 
-        // A signed-in user who cannot write has no button at all, and the links still don't move.
-        $this->assertSame($baseline, $leftSide('/briefings', $this->reader()));
+        // Someone who cannot write has no button at all, so their links sit differently from a writer's
+        // but are just as steady from page to page.
+        $reader = $this->reader();
+        $readerBaseline = $desktop('/briefings', $reader);
+
+        foreach (['/my-drafts', '/'] as $url) {
+            $this->assertSame($readerBaseline, $desktop($url, $reader), "The links moved on {$url} for a reader.");
+        }
+    }
+
+    public function test_the_links_are_on_the_right_after_the_brand(): void
+    {
+        $html = $this->get('/briefings')->getContent();
+
+        $brand = strpos($html, 'class="brand"');
+        $rightGroup = strpos($html, 'class="ml-auto flex items-center');
+        $links = strpos($html, 'aria-label="Main"');
+
+        $this->assertNotFalse($brand);
+        $this->assertLessThan($rightGroup, $brand);
+        $this->assertLessThan($links, $rightGroup, 'The links belong to the right-hand group, not next to the logo.');
     }
 
     public function test_the_phone_menu_has_the_same_links_and_button(): void
