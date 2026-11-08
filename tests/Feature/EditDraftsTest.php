@@ -337,6 +337,34 @@ class EditDraftsTest extends TestCase
             ->assertSee('name="_method" value="DELETE"', false);
     }
 
+    public function test_edit_and_delete_are_labelled_icons_in_the_top_right_of_the_draft(): void
+    {
+        $id = $this->draft();
+
+        $html = $this->actingAs($this->contributor())->get(route('drafts.index'))->assertOk()->getContent();
+
+        preg_match('/<article.*?<\/article>/s', $html, $article);
+        $this->assertNotEmpty($article, 'Expected a draft article.');
+        $article = $article[0];
+
+        // Icon-only controls with accessible names.
+        $this->assertStringContainsString('aria-label="Edit draft"', $article);
+        $this->assertStringContainsString('aria-label="Delete draft"', $article);
+        $this->assertStringNotContainsString('>Edit</a>', $article);
+        $this->assertStringNotContainsString('>Delete</button>', $article);
+        $this->assertSame(2, substr_count($article, '<svg'), 'One icon each.');
+
+        // In the top-right corner, before the title rather than after the excerpt.
+        $this->assertStringContainsString('absolute top-4 right-4', $article);
+        $this->assertLessThan(strpos($article, '<h2'), strpos($article, 'aria-label="Edit draft"'));
+        $this->assertLessThan(strpos($article, '<h2'), strpos($article, 'aria-label="Delete draft"'));
+        $this->assertStringContainsString('pr-20', $article, 'The title must not run under the icons.');
+
+        // Still wired to the same routes.
+        $this->assertStringContainsString('href="'.route('drafts.edit', $id).'"', $article);
+        $this->assertStringContainsString('action="'.route('drafts.destroy', $id).'"', $article);
+    }
+
     public function test_the_drafts_page_shows_the_flash_message_after_a_delete(): void
     {
         $id = $this->draft();

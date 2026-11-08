@@ -131,10 +131,14 @@ class MyDraftsTest extends TestCase
 
     public function test_the_page_has_no_write_link_of_its_own(): void
     {
-        // "Create New" in the navbar already covers it.
-        $this->actingAs($this->user())
-            ->get(route('drafts.index'))
-            ->assertDontSee('Write a briefing');
+        // The navbar's "Write a briefing" button already covers it, so the page body has none.
+        $html = $this->actingAs($this->user())->get(route('drafts.index'))->getContent();
+
+        preg_match('/<main id="content">(.*)<\/main>/s', $html, $main);
+
+        $this->assertNotEmpty($main, 'Expected the page content inside <main id="content">.');
+        $this->assertStringNotContainsString('Write a briefing', $main[1]);
+        $this->assertStringNotContainsString(route('briefings.create'), $main[1]);
     }
 
     public function test_the_navbar_email_links_to_the_drafts_page(): void
