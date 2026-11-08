@@ -21,6 +21,7 @@ Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:800
 | `/briefings/{slug}` | A single briefing |
 | `/briefings/create` | Livewire form (needs the `create briefings entries` permission) |
 | `/my-drafts` | The signed-in user's own unpublished briefings (the navbar email links here; not cached) |
+| `/my-drafts/{id}` | Read-only details page for one of your own drafts (the title on My Drafts links here), with a "Back to Drafts" link |
 | `/my-drafts/{id}/edit` | Edit one of your own drafts in the same form |
 | `/cp` | Statamic control panel (also the login page; a fresh login lands on `/briefings`, or on the page you were originally sent from) |
 
@@ -82,6 +83,7 @@ Titles and bodies are user input shown on public (and cached) pages. Plain-text 
 The look (modelled on table.media: Roboto Slab, red accent, white bordered cards) is defined once, as design tokens in [`resources/css/site.css`](resources/css/site.css): fonts, colours (`primary`, `ink`, `muted`, `line`, `page`, `surface`, status colours), radii and shadows. Edit a value there and the whole app follows; they stay real CSS variables, so a page or theme can also override them (`:root { --color-primary: #1d4ed8; }`).
 
 - Views use the token names (`bg-primary`, `text-ink`, `rounded-card`) and a few component classes (`btn`, `btn-primary`, `btn-secondary`, `card`, `field`, `badge-*`, `alert-*`, `link`), never raw palette colours like `indigo-600`. [`ThemeTokensTest`](tests/Feature/ThemeTokensTest.php) fails if one slips in. `home.antlers.html` is the unused Statamic starter page and is exempt.
+- **Navbar:** [`App\View\Components\Navbar`](app/View/Components/Navbar.php) decides what to show (links, the one primary button, the account menu) and [`navbar.blade.php`](resources/views/components/navbar.blade.php) draws it for desktop and phone. The same links appear on every page and the current one is marked (`aria-current`). Menus are native `<details data-menu>` elements; [`site.js`](resources/js/site.js) only adds close-on-outside-click and Escape. To add a link, add it to `Navbar::__construct()`.
 - Roboto Slab is self-hosted through `@fontsource-variable/roboto-slab`, so no request goes to Google. Swap `--font-sans` / `--font-heading` to change it.
 - After changing CSS or views run `npm run build` (or keep `npm run dev` running).
 

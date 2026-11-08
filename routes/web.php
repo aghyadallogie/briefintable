@@ -4,6 +4,7 @@ use App\Http\Controllers\BriefingController;
 use App\Http\Controllers\DeleteDraftController;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MyDraftsController;
+use App\Http\Controllers\ShowDraftController;
 use App\Livewire\BriefingForm;
 use Illuminate\Support\Facades\Route;
 
@@ -34,6 +35,7 @@ Route::middleware(['web', 'auth'])->group(function () {
 
     // Ownership ("your own, still unpublished") is App\Support\OwnDrafts, checked inside.
     Route::middleware('can:create briefings entries')->group(function () {
+        Route::get('/my-drafts/{draft}', ShowDraftController::class)->name('drafts.show');
         Route::get('/my-drafts/{draft}/edit', BriefingForm::class)->name('drafts.edit');
         Route::delete('/my-drafts/{draft}', DeleteDraftController::class)->name('drafts.destroy');
     });

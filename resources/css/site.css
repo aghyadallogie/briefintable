@@ -99,6 +99,16 @@
         @apply rounded-card border border-line bg-surface shadow-card;
     }
 
+    /* Small square icon-only buttons and links (always give them an aria-label). */
+    .icon-btn {
+        @apply inline-flex h-9 w-9 items-center justify-center rounded-control text-muted transition-colors hover:bg-page hover:text-primary;
+        @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary disabled:opacity-60;
+    }
+
+    .icon-btn-danger {
+        @apply hover:bg-danger-soft hover:text-danger-ink;
+    }
+
     .link {
         @apply font-medium text-primary hover:text-primary-hover;
     }
@@ -106,6 +116,39 @@
     .field {
         @apply mt-1 block w-full rounded-control border border-line-strong bg-surface p-2 text-sm text-ink shadow-sm;
         @apply focus:border-primary focus:ring-1 focus:ring-primary focus:outline-none;
+    }
+
+    /* Navigation */
+    .nav-link {
+        @apply inline-flex items-center border-b-2 border-transparent py-1.5 text-sm font-medium text-muted transition-colors;
+        @apply hover:border-line-strong hover:text-ink focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    }
+
+    .nav-link-active {
+        @apply border-ink text-ink hover:border-ink;
+    }
+
+    .menu-toggle {
+        @apply flex cursor-pointer list-none items-center rounded-control text-ink transition-colors hover:text-primary;
+        @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2;
+    }
+
+    .menu-toggle::-webkit-details-marker {
+        display: none;
+    }
+
+    .menu-panel {
+        @apply rounded-card border border-line bg-surface shadow-lift;
+    }
+
+    .menu-item {
+        @apply block rounded-control px-3 py-2 text-sm text-ink transition-colors hover:bg-page hover:text-primary;
+        @apply focus:outline-none focus-visible:ring-2 focus-visible:ring-primary;
+    }
+
+    .skip-link {
+        @apply sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-4 focus:z-[60] focus:rounded-control focus:bg-surface;
+        @apply focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-primary focus:shadow-lift;
     }
 
     .badge {

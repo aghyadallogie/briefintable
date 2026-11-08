@@ -1,4 +1,4 @@
-@props(['title' => 'Briefing Editor', 'description' => null])
+@props(['title' => 'Briefing Editor', 'description' => null, 'footer' => null])
 <!DOCTYPE html>
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
 
@@ -15,7 +15,10 @@
 
 <body class="min-h-screen">
     <x-navbar />
-    {{ $slot }}
+    <main id="content">
+        {{ $slot }}
+    </main>
+    {{ $footer }}
     @livewireScripts
 </body>
 
