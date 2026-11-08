@@ -25,6 +25,31 @@ class NavbarTest extends TestCase
         return User::make()->id('nav-user')->email('nav@example.test');
     }
 
+    public function test_guests_see_the_app_name_instead_of_an_email(): void
+    {
+        $this->get('/briefings')
+            ->assertOk()
+            ->assertSee('Briefintable')
+            ->assertDontSee('nav@example.test');
+    }
+
+    public function test_logged_in_users_see_their_email_instead_of_the_app_name(): void
+    {
+        $this->actingAs($this->member())
+            ->get('/briefings')
+            ->assertOk()
+            ->assertSee('nav@example.test')
+            ->assertDontSee('Briefintable');
+    }
+
+    public function test_the_email_is_escaped(): void
+    {
+        $this->actingAs(User::make()->id('nav-xss')->email('"><script>alert(1)</script>@example.test'))
+            ->get('/briefings')
+            ->assertOk()
+            ->assertDontSee('<script>alert(1)</script>', false);
+    }
+
     public function test_guests_see_login_and_no_logout(): void
     {
         $this->get('/briefings')
