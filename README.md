@@ -18,7 +18,9 @@ Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:800
 |---|---|
 | `/briefings` | Public, paginated list of published briefings |
 | `/briefings/{slug}` | A single briefing |
-| `/briefings/create` | Livewire form (login required) |
+| `/briefings/create` | Livewire form (needs the `create briefings entries` permission) |
+| `/my-drafts` | The signed-in user's own unpublished briefings (the navbar email links here; not cached) |
+| `/my-drafts/{id}/edit` | Edit one of your own drafts in the same form |
 | `/cp` | Statamic control panel (also the login page; a fresh login lands on `/briefings`, or on the page you were originally sent from) |
 
 Configure the database in `.env` (`DB_CONNECTION=pgsql`, or `sqlite` for a throwaway local DB), then `php artisan migrate`.
@@ -27,6 +29,7 @@ Configure the database in `.env` (`DB_CONNECTION=pgsql`, or `sqlite` for a throw
 
 - **Reading** is Statamic + Antlers: [`BriefingController`](app/Http/Controllers/BriefingController.php) renders [`briefings/index.antlers.html`](resources/views/briefings/index.antlers.html); the single-briefing page is `briefings/show.antlers.html`.
 - **Writing** is Livewire: [`BriefingForm`](app/Livewire/BriefingForm.php) creates an entry in the `briefings` collection. "Publish immediately" sets Statamic's native `published` flag (there is no separate status field).
+- **Reserved slugs:** our own `/briefings/<word>` routes (today `create`) are matched before Statamic's `/briefings/{slug}`, so a briefing with that slug could never be opened. [`ReservedSlugs`](app/Support/ReservedSlugs.php) reads the word from the registered routes; the form skips it (a briefing titled "Create" gets `create-2`) and the blueprint's slug field rejects it in the CP.
 - **Fields** are defined in the blueprint [`resources/blueprints/collections/briefings/briefing.yaml`](resources/blueprints/collections/briefings/briefing.yaml).
 
 ### Roles and publishing
@@ -41,6 +44,7 @@ Admins are Statamic super users (`super: true`). Outside writers get the `contri
 
 Admins publish contributors' drafts in the CP (Collections → Briefings → filter by Draft). The form checks the permission on the route and again in `save()`, and ignores the `published` flag unless the user has `publish briefings entries` ([`ContributorRoleTest`](tests/Feature/ContributorRoleTest.php)).
 
+- **Editing and deleting drafts:** only the author can, and only while the briefing is unpublished. This is the `manage-own-draft` Gate in [`AppServiceProvider`](app/Providers/AppServiceProvider.php), not a Statamic permission, so admins can't change other people's drafts through the app (they use the CP) and nobody can edit a briefing once it is live. Anything else is a 404. Delete is permanent ([`EditDraftsTest`](tests/Feature/EditDraftsTest.php)).
 - Roles need `STATAMIC_PRO_ENABLED=true`; without it the CP user form has no Roles field. Pro is free to try locally and needs a licence in production.
 - To create a contributor: CP → Users → create (or `php please make:user`), then set the role to Contributor.
 - Never make your only admin a contributor: contributors can't open the CP to undo it. Recover by editing the user file in `/users`: put `super: true` back and delete the `roles:` line.
@@ -82,5 +86,5 @@ vendor/bin/pint                # format
 
 ## Known gaps
 
-- No rate limit on the form, and contributors can't edit or delete their submissions.
+- No rate limit on the form, and contributors can't edit or delete a briefing once an admin has published it.
 - Users are flat files, so they don't survive a host with an ephemeral disk.

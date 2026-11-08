@@ -1,6 +1,8 @@
 <?php
 
 use App\Http\Controllers\BriefingController;
+use App\Http\Controllers\DeleteDraftController;
+use App\Http\Controllers\MyDraftsController;
 use App\Livewire\BriefingForm;
 use Illuminate\Support\Facades\Route;
 
@@ -22,4 +24,14 @@ Route::middleware(['web', 'auth'])->group(function () {
     Route::get('/briefings/create', BriefingForm::class)
         ->middleware('can:create briefings entries')
         ->name('briefings.create');
+
+    // Not under /briefings/ on purpose: Statamic serves entries at /briefings/{slug}, and a
+    // briefing titled "Drafts" would otherwise be shadowed by this route.
+    Route::get('/my-drafts', MyDraftsController::class)->name('drafts.index');
+
+    // Ownership ("your own, still unpublished") is the `manage-own-draft` Gate, checked inside.
+    Route::middleware('can:create briefings entries')->group(function () {
+        Route::get('/my-drafts/{draft}/edit', BriefingForm::class)->name('drafts.edit');
+        Route::delete('/my-drafts/{draft}', DeleteDraftController::class)->name('drafts.destroy');
+    });
 });

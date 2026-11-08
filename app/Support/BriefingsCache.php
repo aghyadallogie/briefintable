@@ -8,8 +8,8 @@ use Statamic\Contracts\Entries\Entry;
 
 /**
  * Manages version-stamped cache keys for the public briefings list.
- * 
- * Because Laravel's file cache driver does not support tags, this class 
+ *
+ * Because Laravel's file cache driver does not support tags, this class
  * uses a global version number instead. When published content changes,
  * the version is bumped, instantly making previous cache keys obsolete
  * so they naturally expire via TTL.
@@ -30,7 +30,7 @@ class BriefingsCache
     {
         return (int) Cache::remember(
             sprintf('briefings.count.v%d', self::version()),
-            now()->modify('+' . self::CACHE_TTL),
+            now()->modify('+'.self::CACHE_TTL),
             $resolve,
         );
     }

@@ -1,5 +1,5 @@
 <div class="max-w-4xl mx-auto p-6">
-    <h1 class="text-3xl font-bold">Create a Briefing</h1>
+    <h1 class="text-3xl font-bold">{{ $editing ? 'Edit draft' : 'Create a Briefing' }}</h1>
     <div class="max-w-3xl mt-6 p-6 bg-white rounded-lg shadow-md">
         @if (session()->has('success'))
         <div class="mb-4 p-4 text-green-700 bg-green-100 rounded-lg">
@@ -38,13 +38,13 @@
 
             <!-- Submit -->
             <div class="flex justify-end items-center gap-3">
-                <a href="/briefings"
+                <a href="{{ $backUrl }}"
                     class="inline-flex justify-center py-2 px-4 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Back to Briefings
+                    Back
                 </a>
                 <button type="submit"
                     class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                    Save Briefing
+                    {{ $editing ? 'Save changes' : 'Save Briefing' }}
                 </button>
             </div>
         </form>

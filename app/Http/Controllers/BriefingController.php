@@ -9,11 +9,11 @@ use Statamic\View\View as StatamicView;
 
 /**
  * Serves the public, paginated briefings list.
- * 
- * Bypasses Statamic's default routing to provide a custom paginated list view. 
+ *
+ * Bypasses Statamic's default routing to provide a custom paginated list view.
  * Ensures zero database queries on cache hits by utilizing version-stamped
  * Enforces strict page bounds to prevent cache bloat.
- * and passes a version-stamped cache key and TTL to the Antlers template for efficient 
+ * and passes a version-stamped cache key and TTL to the Antlers template for efficient
  * cache invalidation because file cache driver does not support cache tags.
  */
 class BriefingController extends Controller
@@ -22,7 +22,7 @@ class BriefingController extends Controller
 
     public function index(Request $request)
     {
-        $total_briefings_count = BriefingsCache::publishedCount(fn() => Entry::query()
+        $total_briefings_count = BriefingsCache::publishedCount(fn () => Entry::query()
             ->where('collection', 'briefings')
             ->whereStatus('published')
             ->count());
@@ -37,7 +37,7 @@ class BriefingController extends Controller
                 'page_title' => 'Table',
                 'per_page' => self::PER_PAGE,
                 'cache_key' => BriefingsCache::listKey($page, self::PER_PAGE),
-                'cache_ttl' => \App\Support\BriefingsCache::CACHE_TTL,
+                'cache_ttl' => BriefingsCache::CACHE_TTL,
             ])
             ->render();
     }
