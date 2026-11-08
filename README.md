@@ -16,6 +16,7 @@ Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:800
 
 | URL | What |
 |---|---|
+| `/` | Landing page: hero, how it works, the 3 newest published briefings and the published count (cached per list version, so publishing refreshes it) |
 | `/briefings` | Public, paginated list of published briefings |
 | `/briefings/{slug}` | A single briefing |
 | `/briefings/create` | Livewire form (needs the `create briefings entries` permission) |

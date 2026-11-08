@@ -4,7 +4,7 @@
         @auth
         <a href="{{ route('drafts.index') }}" class="text-xl font-bold text-indigo-600">{{ auth()->user()->email() }}</a>
         @else
-        <a href="/briefings" class="text-xl font-bold text-indigo-600">Briefintable</a>
+        <a href="{{ route('home') }}" class="text-xl font-bold text-indigo-600">Briefintable</a>
         @endauth
 
         <!-- Links -->

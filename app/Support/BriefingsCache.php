@@ -25,6 +25,12 @@ class BriefingsCache
         return sprintf('briefings.list.v%d.n%d.p%d', self::version(), $perPage, $page);
     }
 
+    /** Key for the landing page's latest briefings and published count. */
+    public static function homeKey(): string
+    {
+        return sprintf('briefings.home.v%d', self::version());
+    }
+
     // Query is passed in from Controller to keep cache class decoupled from Statamic.
     public static function publishedCount(Closure $resolve): int
     {
