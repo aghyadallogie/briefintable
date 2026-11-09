@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Http\Request;
 use Statamic\Exceptions\NotFoundHttpException;
-use Statamic\Facades\Entry;
 use Statamic\View\View as StatamicView;
 
 /**
@@ -23,10 +23,7 @@ class BriefingController extends Controller
 
     public function index(Request $request)
     {
-        $total_briefings_count = BriefingsCache::publishedCount(fn () => Entry::query()
-            ->where('collection', 'briefings')
-            ->whereStatus('published')
-            ->count());
+        $total_briefings_count = BriefingsCache::publishedCount(fn () => Briefings::published()->count());
 
         $lastPage = max(1, (int) ceil($total_briefings_count / self::PER_PAGE));
         $page = max(1, (int) $request->query('page', 1));
@@ -39,6 +36,10 @@ class BriefingController extends Controller
             ->layout('layout')
             ->with([
                 'page_title' => 'Briefings',
+                // The template asks for these instead of hardcoding them, so it can't drift from the
+                // landing page, which orders its "latest" briefings through the same class.
+                'collection_handle' => Briefings::COLLECTION,
+                'sort' => Briefings::antlersSort(),
                 'per_page' => self::PER_PAGE,
                 'cache_key' => BriefingsCache::listKey($page, self::PER_PAGE),
                 'cache_ttl' => BriefingsCache::CACHE_TTL,

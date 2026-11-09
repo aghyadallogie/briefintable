@@ -104,6 +104,23 @@ class LandingPageTest extends TestCase
             ->assertSee('4 briefings published');
     }
 
+    public function test_it_orders_the_latest_by_publication_date_not_creation_date(): void
+    {
+        $this->travelTo(now()->subDays(10));
+        $draft = $this->briefing('Published last', published: false);
+
+        $this->travelTo(now()->addDays(5));
+        $this->briefing('Published first');
+
+        $this->travelTo(now()->addDays(5));
+        $draft->published(true)->save();
+        $this->travelBack();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSeeInOrder(['Published last', 'Published first']);
+    }
+
     public function test_the_latest_cards_rise_in_one_after_another_and_lift_on_hover(): void
     {
         foreach (['One', 'Two', 'Three'] as $title) {

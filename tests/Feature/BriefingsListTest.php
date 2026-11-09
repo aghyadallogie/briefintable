@@ -93,6 +93,26 @@ class BriefingsListTest extends TestCase
             ->assertDontSee('Draft one');
     }
 
+    public function test_it_sorts_by_publication_date_not_creation_date(): void
+    {
+        // Created first, but kept as a draft.
+        $this->travelTo(now()->subDays(10));
+        $draft = $this->briefing('Published last', published: false);
+
+        // Created later, but published earlier.
+        $this->travelTo(now()->addDays(5));
+        $this->briefing('Published first');
+
+        // Publish the older draft now, making it the most recently published.
+        $this->travelTo(now()->addDays(5));
+        $draft->published(true)->save();
+        $this->travelBack();
+
+        $this->get('/briefings')
+            ->assertOk()
+            ->assertSeeInOrder(['Published last', 'Published first']);
+    }
+
     public function test_excerpt_strips_html_and_is_truncated(): void
     {
         $this->briefing('Long one', content: '**Bold intro** '.str_repeat('word ', 100).'THE-END-MARKER');

@@ -32,7 +32,7 @@ class OwnDrafts
 
     public static function stateFor(?Authenticatable $user, ?EntryContract $entry): string
     {
-        if (! $entry || $entry->collectionHandle() !== 'briefings') {
+        if (! $entry || $entry->collectionHandle() !== Briefings::COLLECTION) {
             return self::MISSING;
         }
 
@@ -50,7 +50,7 @@ class OwnDrafts
      *
      * A concurrent publish (from the CP) waits for the lock, so either it lands first and the
      * callback sees "published", or it lands after the callback has finished. The entry is read
-     * through the query builder, not Entry::find(), so a copy cached earlier in the request
+     * through the query builder (not the id lookup Statamic memoises), so a copy cached earlier in the request
      * can't be stale. SQLite (used by the tests) has no row locks and just ignores the lock.
      */
     public static function whileLocked(string $id, Closure $callback): mixed

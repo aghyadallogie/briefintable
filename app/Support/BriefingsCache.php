@@ -49,7 +49,7 @@ class BriefingsCache
     // Only bump cache version if entry is a briefing AND is published or was published.
     public static function bumpFor(Entry $entry): void
     {
-        if ($entry->collectionHandle() !== 'briefings') {
+        if ($entry->collectionHandle() !== Briefings::COLLECTION) {
             return;
         }
 

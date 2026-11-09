@@ -2,6 +2,7 @@
 
 namespace App\Livewire;
 
+use App\Support\Briefings;
 use App\Support\OwnDrafts;
 use App\Support\ReservedSlugs;
 use Illuminate\Support\Facades\Auth;
@@ -97,7 +98,7 @@ class BriefingForm extends Component
         }
 
         $entry = Entry::make();
-        $entry->collection('briefings')
+        $entry->collection(Briefings::COLLECTION)
             ->blueprint('briefing')
             ->slug($this->uniqueSlug())
             ->published($publish)
@@ -185,7 +186,7 @@ class BriefingForm extends Component
         $taken_slugs = [
             ...ReservedSlugs::briefings(),
             ...Entry::query()
-                ->where('collection', 'briefings')
+                ->where('collection', Briefings::COLLECTION)
                 ->where('slug', 'like', $base.'%')
                 ->get()
                 ->map->slug()

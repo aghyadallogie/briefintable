@@ -6,7 +6,8 @@
     {{# Same HTML for every visitor, so safe to cache. Key is version-stamped; see App\Support\BriefingsCache. #}}
     {{ cache :key="cache_key" :for="cache_ttl" }}
         <div class="space-y-6">
-            {{ collection:briefings sort="created_at:desc" paginate="{per_page}" as="items" }}
+            {{# The collection and the sort come from App\Support\Briefings (via BriefingController), not hardcoded here. #}}
+            {{ collection :from="collection_handle" :sort="sort" paginate="{per_page}" as="items" }}
                 {{ if no_results }}
                     <p class="text-subtle">No briefings have been published yet.</p>
                 {{ /if }}
@@ -40,7 +41,7 @@
                         </nav>
                     {{ /if }}
                 {{ /paginate }}
-            {{ /collection:briefings }}
+            {{ /collection }}
         </div>
     {{ /cache }}
 </div>

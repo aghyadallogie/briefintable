@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Http\Controllers\Auth\LoginController;
+use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use App\Support\ReservedSlugs;
 use Illuminate\Auth\Middleware\Authenticate;
@@ -12,6 +13,7 @@ use Illuminate\Support\Facades\Validator;
 use Illuminate\Support\ServiceProvider;
 use Statamic\Events\EntryDeleted;
 use Statamic\Events\EntrySaved;
+use Statamic\Events\EntrySaving;
 use Statamic\Facades\Collection;
 use Statamic\Http\Controllers\CP\Auth\LoginController as StatamicLoginController;
 
@@ -37,6 +39,21 @@ class AppServiceProvider extends ServiceProvider
             BriefingsCache::bumpFor($event->entry);
         });
 
+        // Remember when a briefing first goes live, so the public list can sort by publication
+        // date instead of creation date. A draft can sit around for a long time before it is
+        // published, and readers expect newly published briefings to appear at the top.
+        Event::listen(EntrySaving::class, function (EntrySaving $event) {
+            $entry = $event->entry;
+
+            if ($entry->collectionHandle() !== Briefings::COLLECTION || ! $entry->published()) {
+                return;
+            }
+
+            if (! $entry->get('published_at')) {
+                $entry->set('published_at', now()->timestamp);
+            }
+        });
+
         // Used by the briefing blueprint's slug field, so entries made in the CP can't take a
         // slug that one of our /briefings/<word> routes would shadow.
         Validator::extend(
@@ -47,7 +64,7 @@ class AppServiceProvider extends ServiceProvider
 
         // Entries don't expose a creation date to templates (`date` is empty because the collection
         // has no dates, and `updated_at` changes when an admin publishes), so the bylines use this.
-        Collection::computed('briefings', 'written_at', fn ($entry) => $entry->model()?->created_at);
+        Collection::computed(Briefings::COLLECTION, 'written_at', fn ($entry) => $entry->model()?->created_at);
 
         Authenticate::redirectUsing(function () {
             if (Route::has('statamic.cp.login')) {

@@ -2,10 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
-use Statamic\Facades\Entry;
 
 /**
  * The landing page at "/".
@@ -32,16 +32,9 @@ class HomeController extends Controller
     /** @return array{count: int, latest: list<array{title: string, excerpt: string, url: string, date: string}>} */
     private function load(): array
     {
-        $published = fn () => Entry::query()
-            ->where('collection', 'briefings')
-            ->whereStatus('published');
-
         return [
-            'count' => $published()->count(),
-            'latest' => $published()
-                ->orderBy('created_at', 'desc')
-                ->limit(self::LATEST)
-                ->get()
+            'count' => Briefings::published()->count(),
+            'latest' => Briefings::newestPublished()->limit(self::LATEST)->get()
                 ->map(fn ($entry) => [
                     'title' => (string) $entry->get('title'),
                     'excerpt' => Str::limit(html_entity_decode(strip_tags((string) $entry->augmentedValue('content'))), 160),
