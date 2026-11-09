@@ -24,6 +24,12 @@ tabs:
               type: textarea
               display: 'AI summary'
           -
+            handle: published_at
+            field:
+              type: date
+              display: published_at
+              time_enabled: true
+          -
             handle: author
             field:
               type: users

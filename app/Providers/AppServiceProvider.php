@@ -50,7 +50,7 @@ class AppServiceProvider extends ServiceProvider
             }
 
             if (! $entry->get('published_at')) {
-                $entry->set('published_at', now()->timestamp);
+                $entry->set('published_at', now()->toDateTimeString());
             }
         });
 

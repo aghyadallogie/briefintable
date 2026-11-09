@@ -31,7 +31,7 @@ class BriefingsQueryTest extends TestCase
         Cache::flush();
     }
 
-    private function entry(string $title, bool $published = true, ?int $publishedAt = null, string $author = 'someone', string $collection = 'briefings'): void
+    private function entry(string $title, bool $published = true, ?string $publishedAt = null, string $author = 'someone', string $collection = 'briefings'): void
     {
         Entry::make()
             ->collection($collection)
@@ -59,14 +59,14 @@ class BriefingsQueryTest extends TestCase
     {
         // Written first but published last, so it must come first even though it is the oldest entry.
         $this->travelTo(now()->subDays(3));
-        $this->entry('Written first, published last', publishedAt: 3000);
+        $this->entry('Written first, published last', publishedAt: '2024-01-03 00:00:00');
         $this->travelTo(now()->addDay());
-        $this->entry('Published first', publishedAt: 1000);
+        $this->entry('Published first', publishedAt: '2024-01-01 00:00:00');
         $this->travelTo(now()->addDay());
         // Same publication time as the next one: the one written later wins the tie.
-        $this->entry('Tie, written earlier', publishedAt: 2000);
+        $this->entry('Tie, written earlier', publishedAt: '2024-01-02 00:00:00');
         $this->travelTo(now()->addHour());
-        $this->entry('Tie, written later', publishedAt: 2000);
+        $this->entry('Tie, written later', publishedAt: '2024-01-02 00:00:00');
         $this->travelBack();
 
         $this->assertSame(
@@ -98,13 +98,13 @@ class BriefingsQueryTest extends TestCase
     {
         // Written in one order, published in another, so a page that sorted by creation would disagree.
         $this->travelTo(now()->subDays(4));
-        $this->entry('Alpha', publishedAt: 4000);
+        $this->entry('Alpha', publishedAt: '2024-01-04 00:00:00');
         $this->travelTo(now()->addDay());
-        $this->entry('Bravo', publishedAt: 1000);
+        $this->entry('Bravo', publishedAt: '2024-01-01 00:00:00');
         $this->travelTo(now()->addDay());
-        $this->entry('Charlie', publishedAt: 3000);
+        $this->entry('Charlie', publishedAt: '2024-01-03 00:00:00');
         $this->travelTo(now()->addDay());
-        $this->entry('Delta', publishedAt: 2000);
+        $this->entry('Delta', publishedAt: '2024-01-02 00:00:00');
         $this->travelBack();
 
         $expected = $this->titles(Briefings::newestPublished()->get());
