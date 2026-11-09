@@ -5,7 +5,8 @@
     "scripts": {
         "build": "vite build",
         "dev": "vite",
-        "watch": "vite"
+        "watch": "vite",
+        "start": "concurrently --names=server,vite --kill-others \"php artisan serve\" \"npm run dev\""
     },
     "devDependencies": {
         "@tailwindcss/typography": "^0.5.20",

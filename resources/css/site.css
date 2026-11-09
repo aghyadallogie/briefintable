@@ -160,7 +160,12 @@
     }
 
     .card {
-        @apply rounded-card border border-line bg-surface shadow-card;
+        @apply rounded-card border border-line bg-surface shadow-card overflow-hidden;
+    }
+
+    .card > p,
+    .card > div {
+        @apply overflow-hidden;
     }
 
     .icon-btn {
