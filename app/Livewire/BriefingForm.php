@@ -4,21 +4,20 @@ namespace App\Livewire;
 
 use App\Support\Briefings;
 use App\Support\OwnDrafts;
-use App\Support\ReservedSlugs;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
 use Statamic\Facades\Entry;
-use Statamic\Support\Str;
 
 /**
- * Handles the creation of new briefings via a Livewire full-page component.
+ * The form for writing a briefing and for editing one of your own drafts (a Livewire full-page component).
  *
- * Validates input, generates a unique slug, assigns the authenticated user
- * as the author, and persists the entry to the database. Cache invalidation
- * is handled automatically by the EntrySaved event in AppServiceProvider.
+ * Creating: validates the input, takes a unique slug from Briefings::uniqueSlug(), makes the signed-in user the
+ * author and saves the entry. Editing: only the author, only while it is still a draft, under a row lock
+ * (see OwnDrafts). Only users who may publish can publish from here; everyone else always saves a draft.
+ * Cache invalidation is handled by the EntrySaved listener in AppServiceProvider.
  */
 #[Layout('components.layouts.app')]
 class BriefingForm extends Component
@@ -100,7 +99,7 @@ class BriefingForm extends Component
         $entry = Entry::make();
         $entry->collection(Briefings::COLLECTION)
             ->blueprint('briefing')
-            ->slug($this->uniqueSlug())
+            ->slug(Briefings::uniqueSlug($this->title))
             ->published($publish)
             ->data([
                 'title' => $this->title,
@@ -176,31 +175,6 @@ class BriefingForm extends Component
     protected function canPublish(): bool
     {
         return Gate::allows('publish briefings entries');
-    }
-
-    protected function uniqueSlug(): string
-    {
-        $base = (string) Str::slug($this->title) ?: 'briefing';
-
-        // Reserved slugs (e.g. "create") count as taken, so a briefing titled "Create" becomes "create-2".
-        $taken_slugs = [
-            ...ReservedSlugs::briefings(),
-            ...Entry::query()
-                ->where('collection', Briefings::COLLECTION)
-                ->where('slug', 'like', $base.'%')
-                ->get()
-                ->map->slug()
-                ->all(),
-        ];
-
-        $slug = $base;
-        $suffix = 2;
-
-        while (in_array($slug, $taken_slugs, true)) {
-            $slug = $base.'-'.$suffix++;
-        }
-
-        return $slug;
     }
 
     public function render()
