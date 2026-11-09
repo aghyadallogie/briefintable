@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Http\Request;
-use Statamic\Exceptions\NotFoundHttpException;
 use Statamic\View\View as StatamicView;
 
 /**
@@ -28,9 +27,8 @@ class BriefingController extends Controller
         $lastPage = max(1, (int) ceil($total_briefings_count / self::PER_PAGE));
         $page = max(1, (int) $request->query('page', 1));
 
-        // Statamic's exception, unlike a plain abort(), renders the styled errors/404 template
-        // through the site layout. A plain abort(404) falls back to Laravel's bare error view.
-        throw_if($page > $lastPage, new NotFoundHttpException);
+        // Shown with the styled errors/404 template (see withExceptions in bootstrap/app.php).
+        abort_if($page > $lastPage, 404);
 
         return StatamicView::make('briefings.index')
             ->layout('layout')

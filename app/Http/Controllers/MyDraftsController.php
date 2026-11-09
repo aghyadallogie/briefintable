@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Support\Briefings;
 use Illuminate\Http\Request;
-use Statamic\Exceptions\NotFoundHttpException;
 use Statamic\Facades\User;
 
 /**
@@ -19,9 +18,8 @@ class MyDraftsController extends Controller
     {
         $drafts = Briefings::draftsOf(User::current()->id())->paginate(BriefingController::PER_PAGE);
 
-        // Statamic's exception, unlike a plain abort(), renders the styled errors/404 template
-        // through the site layout. A plain abort(404) falls back to Laravel's bare error view.
-        throw_if($drafts->currentPage() > $drafts->lastPage(), new NotFoundHttpException);
+        // Shown with the styled errors/404 template (see withExceptions in bootstrap/app.php).
+        abort_if($drafts->currentPage() > $drafts->lastPage(), 404);
 
         return view('drafts.index', ['drafts' => $drafts]);
     }
