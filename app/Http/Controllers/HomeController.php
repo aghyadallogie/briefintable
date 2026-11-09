@@ -39,7 +39,9 @@ class HomeController extends Controller
                     'title' => (string) $entry->get('title'),
                     'excerpt' => Str::limit(html_entity_decode(strip_tags((string) $entry->augmentedValue('content'))), 160),
                     'url' => (string) $entry->url(),
-                    'date' => $entry->lastModified()->format('M j, Y'),
+                    // The date the list and the briefing page show, not "last modified", which changes
+                    // whenever an admin edits the entry.
+                    'date' => $entry->value('written_at')->format('M j, Y'),
                 ])
                 ->all(),
         ];

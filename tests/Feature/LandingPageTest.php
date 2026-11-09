@@ -121,6 +121,22 @@ class LandingPageTest extends TestCase
             ->assertSeeInOrder(['Published last', 'Published first']);
     }
 
+    public function test_a_card_shows_the_date_the_briefing_was_written_not_when_it_was_last_edited(): void
+    {
+        $this->travelTo(now()->setDate(2024, 3, 5)->setTime(12, 0));
+        $entry = $this->briefing('Old briefing');
+
+        $this->travelTo(now()->setDate(2024, 9, 20));
+        $entry->set('content', 'Edited later')->save();
+        $this->travelBack();
+        Cache::flush();
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('Mar 5, 2024')
+            ->assertDontSee('Sep 20, 2024');
+    }
+
     public function test_the_latest_cards_rise_in_one_after_another_and_lift_on_hover(): void
     {
         foreach (['One', 'Two', 'Three'] as $title) {
