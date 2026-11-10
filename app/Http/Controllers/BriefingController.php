@@ -34,8 +34,6 @@ class BriefingController extends Controller
             ->layout('layout')
             ->with([
                 'page_title' => 'Briefings',
-                // The template asks for these instead of hardcoding them, so it can't drift from the
-                // landing page, which orders its "latest" briefings through the same class.
                 'collection_handle' => Briefings::COLLECTION,
                 'sort' => Briefings::antlersSort(),
                 'per_page' => self::PER_PAGE,

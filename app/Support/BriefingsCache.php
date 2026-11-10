@@ -18,7 +18,7 @@ class BriefingsCache
 {
     private const VERSION_KEY = 'briefings.list.version';
 
-    public const CACHE_TTL = '3 hours';
+    public const CACHE_TTL = '1 day';
 
     public static function listKey(int $page, int $perPage): string
     {
@@ -31,12 +31,12 @@ class BriefingsCache
         return sprintf('briefings.home.v%d', self::version());
     }
 
-    // Query is passed in from Controller to keep cache class decoupled from Statamic.
+    /** Query is passed in from Controller to keep cache class decoupled from Eloquent and Statamic. */
     public static function publishedCount(Closure $resolve): int
     {
         return (int) Cache::remember(
             sprintf('briefings.count.v%d', self::version()),
-            now()->modify('+'.self::CACHE_TTL),
+            now()->modify('+' . self::CACHE_TTL),
             $resolve,
         );
     }
@@ -46,7 +46,7 @@ class BriefingsCache
         Cache::forever(self::VERSION_KEY, self::version() + 1);
     }
 
-    // Only bump cache version if entry is a briefing AND is published or was published.
+    /** Only bump cache version if entry is a briefing AND is published or was published. Ignores drafts. */
     public static function bumpFor(Entry $entry): void
     {
         if ($entry->collectionHandle() !== Briefings::COLLECTION) {

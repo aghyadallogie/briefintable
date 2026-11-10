@@ -2,7 +2,7 @@
 #
 # contributor: may submit briefings from /briefings/create, but only as drafts. An admin publishes
 # them in the control panel. The role deliberately has no `access cp`, so /cp stays closed to it, and no
-# `publish briefings entries`. Do not add either without also updating BriefingForm and its tests.
+# `publish briefings entries`.
 contributor:
   title: Contributor
   permissions:

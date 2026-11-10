@@ -8,30 +8,30 @@ use Statamic\Facades\Entry;
 use Statamic\Support\Str;
 
 /**
- * The few things that were being decided in more than one place: which collection holds briefings, what
- * "published" means, in what order they are shown, and how a new briefing gets its slug. Change them here
- * and every page follows.
+ * Centralizes domain logic for the "briefings" collection.
  *
- * Everything else (finding one entry, ...) is a plain Statamic call at the place that needs it.
+ * The single source of truth for collection queries, sort, order,
+ * and write-path utilities (like unique slug generation).
+ * This keeps queries and slug rules out of controllers and Livewire
+ * components, ensuring consistent behavior across the app.
  */
 class Briefings
 {
-    /** Handle of the Statamic collection that holds every briefing. */
     public const COLLECTION = 'briefings';
 
-    /**
-     * Newest published first: by when it went live, then by when it was written (which also orders any
-     * entry that has no published_at yet). The public list and the landing page both use this order.
-     */
+    // Statamic's permission names are still hard-coded in roles.yaml
+    public const CAN_CREATE = 'create briefings entries';
+
+    public const CAN_PUBLISH = 'publish briefings entries';
+
     public const ORDER = [['published_at', 'desc'], ['created_at', 'desc']];
 
-    /** Live briefings. */
     public static function published(): QueryBuilder
     {
         return self::all()->whereStatus('published');
     }
 
-    /** Live briefings, newest published first. */
+    // The public briefings list and the landing page both use this order.
     public static function newestPublished(): QueryBuilder
     {
         $query = self::published();
@@ -43,13 +43,7 @@ class Briefings
         return $query;
     }
 
-    /** The same order as ORDER, written the way Antlers' `sort` parameter wants it ("a:desc|b:desc"). */
-    public static function antlersSort(): string
-    {
-        return collect(self::ORDER)->map(fn (array $order) => implode(':', $order))->implode('|');
-    }
-
-    /** One author's unpublished briefings, newest first. */
+    // One author's unpublished briefings, newest first.
     public static function draftsOf(string $authorId): QueryBuilder
     {
         return self::all()
@@ -58,16 +52,16 @@ class Briefings
             ->orderBy('created_at', 'desc');
     }
 
-    /**
-     * A slug for a new briefing: the title's slug, or "briefing" when the title has none, with "-2", "-3", ...
-     * added until nothing uses it. Slugs held back for our own routes (e.g. "create") count as taken.
-     */
+    private static function all(): QueryBuilder
+    {
+        return Entry::query()->where('collection', self::COLLECTION);
+    }
+
+    // Generates a unique and unreserved slug based on title. If it's already taken, it appends a number.
     public static function uniqueSlug(string $title): string
     {
         $base = Str::slug($title) ?: 'briefing';
 
-        // Only the slugs are read, not whole entries. Slugs hold just letters, digits and dashes, so $base is
-        // safe inside LIKE.
         $taken = [
             ...ReservedSlugs::briefings(),
             ...EntryModel::query()
@@ -87,8 +81,9 @@ class Briefings
         return $slug;
     }
 
-    private static function all(): QueryBuilder
+    // The same ORDER, written the way Antlers 'sort' parameter wants it ("a:desc|b:desc").
+    public static function antlersSort(): string
     {
-        return Entry::query()->where('collection', self::COLLECTION);
+        return collect(self::ORDER)->map(fn (array $order) => implode(':', $order))->implode('|');
     }
 }

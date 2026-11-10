@@ -2,6 +2,7 @@
 
 namespace App\View\Components;
 
+use App\Support\Briefings;
 use Closure;
 use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Gate;
@@ -49,7 +50,7 @@ class Navbar extends Component
 
         if (! $signedIn) {
             $this->cta = ['label' => 'Log in', 'url' => route('login'), 'hidden' => false];
-        } elseif (Gate::allows('create briefings entries')) {
+        } elseif (Gate::allows(Briefings::CAN_CREATE)) {
             // On the write form itself you are already there, so the button is hidden. It is still rendered
             // (invisible) so it keeps its place and the links beside it don't shift.
             $this->cta = ['label' => 'Write a briefing', 'url' => route('briefings.create'), 'hidden' => $request->is('briefings/create')];

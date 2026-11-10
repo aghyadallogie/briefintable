@@ -10,26 +10,24 @@ use Statamic\Eloquent\Entries\EntryModel;
 use Statamic\Facades\Entry;
 
 /**
- * The rule behind "edit or delete your own draft": the briefing is yours (you are its author)
- * and it has not been published yet. Deliberately not a Statamic permission: those would also
- * cover published entries, and super users would pass for other people's drafts too.
- *
- * Writes go through whileLocked() so an admin publishing at the same moment can't be overwritten.
+ * To edit or delete a draft, the user must be the author of it and its state must be DRAFT.
+ * state can be: MISSING, FOREIGN, PUBLISHED, DRAFT.
  */
 class OwnDrafts
 {
     /** No such briefing. */
     public const MISSING = 'missing';
 
-    /** Someone else's briefing (or a different collection). Callers should answer with a 404. */
+    /** Someone else's briefing (or a different collection). */
     public const FOREIGN = 'foreign';
 
-    /** Yours, but already live, so it can no longer be changed here. */
+    /** Yours, but already live, so it can no longer be changed. */
     public const PUBLISHED = 'published';
 
     /** Yours and still a draft: the only state that may be edited or deleted. */
     public const DRAFT = 'draft';
 
+    /** Returns the state of a briefing with respect to a user: MISSING, FOREIGN, PUBLISHED, DRAFT. */
     public static function stateFor(?Authenticatable $user, ?EntryContract $entry): string
     {
         if (! $entry || $entry->collectionHandle() !== Briefings::COLLECTION) {
@@ -46,12 +44,12 @@ class OwnDrafts
     }
 
     /**
-     * Runs $callback with a freshly read entry while holding a row lock.
+     * Prevents race conditions between editor in form and admin in CP by a row lock.
      *
-     * A concurrent publish (from the CP) waits for the lock, so either it lands first and the
-     * callback sees "published", or it lands after the callback has finished. The entry is read
-     * through the query builder (not the id lookup Statamic memoises), so a copy cached earlier in the request
-     * can't be stale. SQLite (used by the tests) has no row locks and just ignores the lock.
+     * Acquires the lock *before* the callback executes, so any state check inside the
+     * callback sees the most up-to-date data.
+     *
+     * @return mixed The value returned by the callback.
      */
     public static function whileLocked(string $id, Closure $callback): mixed
     {

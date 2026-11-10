@@ -157,7 +157,7 @@
             </div>
         </section>
         @else
-        @can('create briefings entries')
+        @can(\App\Support\Briefings::CAN_CREATE)
         <section class="px-6 pb-16">
             <div class="mx-auto max-w-5xl rounded-card bg-primary px-8 py-12 text-center shadow-card">
                 <h2 class="text-2xl text-primary-contrast sm:text-3xl">Have something to share?</h2>
