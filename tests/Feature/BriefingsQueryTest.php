@@ -94,48 +94,6 @@ class BriefingsQueryTest extends TestCase
         $this->assertSame(['Newer draft', 'Older draft'], $this->titles(Briefings::draftsOf('me')->get()));
     }
 
-    private function withSlug(string $slug, string $collection = 'briefings'): void
-    {
-        Entry::make()->collection($collection)->slug($slug)->data(['title' => $slug])->save();
-    }
-
-    public function test_unique_slug_is_the_titles_slug_when_nothing_uses_it(): void
-    {
-        $this->assertSame('hello-world', Briefings::uniqueSlug('Hello World!'));
-    }
-
-    public function test_unique_slug_adds_the_next_free_number(): void
-    {
-        $this->withSlug('hello');
-        $this->assertSame('hello-2', Briefings::uniqueSlug('Hello'));
-
-        $this->withSlug('hello-2');
-        $this->withSlug('hello-3');
-        $this->assertSame('hello-4', Briefings::uniqueSlug('Hello'));
-    }
-
-    public function test_unique_slug_only_looks_at_briefings_and_matches_whole_slugs(): void
-    {
-        $this->withSlug('hello', collection: 'news');
-        $this->withSlug('hello-there');
-
-        // Another collection's slug and a longer slug that merely starts the same way do not block it.
-        $this->assertSame('hello', Briefings::uniqueSlug('Hello'));
-    }
-
-    public function test_unique_slug_skips_the_words_our_own_routes_use(): void
-    {
-        $this->assertSame('create-2', Briefings::uniqueSlug('Create'));
-    }
-
-    public function test_unique_slug_falls_back_to_briefing_when_the_title_has_no_slug(): void
-    {
-        $this->assertSame('briefing', Briefings::uniqueSlug('!!!'));
-
-        $this->withSlug('briefing');
-        $this->assertSame('briefing-2', Briefings::uniqueSlug('???'));
-    }
-
     public function test_the_public_list_and_the_landing_page_show_the_order_the_class_defines(): void
     {
         // Written in one order, published in another, so a page that sorted by creation would disagree.

@@ -3,17 +3,14 @@
 namespace App\Support;
 
 use Statamic\Contracts\Entries\QueryBuilder;
-use Statamic\Eloquent\Entries\EntryModel;
 use Statamic\Facades\Entry;
-use Statamic\Support\Str;
 
 /**
  * Centralizes domain logic for the "briefings" collection.
  *
- * The single source of truth for collection queries, sort, order,
- * and write-path utilities (like unique slug generation).
- * This keeps queries and slug rules out of controllers and Livewire
- * components, ensuring consistent behavior across the app.
+ * The single source of truth for the collection handle, permissions, queries, sort and order.
+ * This keeps those rules out of controllers and Livewire components, ensuring consistent
+ * behavior across the app. Slug rules live in BriefingSlugs.
  */
 class Briefings
 {
@@ -55,30 +52,6 @@ class Briefings
     private static function all(): QueryBuilder
     {
         return Entry::query()->where('collection', self::COLLECTION);
-    }
-
-    // Generates a unique and unreserved slug based on title. If it's already taken, it appends a number.
-    public static function uniqueSlug(string $title): string
-    {
-        $base = Str::slug($title) ?: 'briefing';
-
-        $taken = [
-            ...ReservedSlugs::briefings(),
-            ...EntryModel::query()
-                ->where('collection', self::COLLECTION)
-                ->where('slug', 'like', $base.'%')
-                ->pluck('slug')
-                ->all(),
-        ];
-
-        $slug = $base;
-        $suffix = 2;
-
-        while (in_array($slug, $taken, true)) {
-            $slug = $base.'-'.$suffix++;
-        }
-
-        return $slug;
     }
 
     // The same ORDER, written the way Antlers 'sort' parameter wants it ("a:desc|b:desc").

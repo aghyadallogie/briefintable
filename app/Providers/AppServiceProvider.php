@@ -5,7 +5,7 @@ namespace App\Providers;
 use App\Http\Controllers\Auth\LoginController;
 use App\Support\Briefings;
 use App\Support\BriefingsCache;
-use App\Support\ReservedSlugs;
+use App\Support\BriefingSlugs;
 use Illuminate\Auth\Middleware\Authenticate;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\Facades\Route;
@@ -58,7 +58,7 @@ class AppServiceProvider extends ServiceProvider
         // slug that one of our /briefings/<word> routes would shadow.
         Validator::extend(
             'briefing_slug_not_reserved',
-            fn ($attribute, $value) => ! ReservedSlugs::isReserved((string) $value),
+            fn ($attribute, $value) => ! BriefingSlugs::isReserved((string) $value),
             'That slug is reserved by the app. Please choose another.',
         );
 

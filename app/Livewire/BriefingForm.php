@@ -3,6 +3,7 @@
 namespace App\Livewire;
 
 use App\Support\Briefings;
+use App\Support\BriefingSlugs;
 use App\Support\OwnDrafts;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -14,7 +15,7 @@ use Statamic\Facades\Entry;
 /**
  * The form for writing a briefing and for editing one of your own drafts (a Livewire full-page component).
  *
- * Creating: validates the input, takes a unique slug from Briefings::uniqueSlug(), makes the signed-in user the
+ * Creating: validates the input, takes a unique slug from BriefingSlugs::unique(),makes the signed-in user the
  * author and saves the entry.
  * Editing: only the author, only while it is still a draft, under a row lock (see OwnDrafts).
  * Only users who may publish can publish from here; everyone else always saves a draft.
@@ -109,7 +110,7 @@ class BriefingForm extends Component
         $entry = Entry::make();
         $entry->collection(Briefings::COLLECTION)
             ->blueprint('briefing')
-            ->slug(Briefings::uniqueSlug($this->title))
+            ->slug(BriefingSlugs::unique($this->title))
             ->published($publish)
             ->data([
                 'title' => $this->title,

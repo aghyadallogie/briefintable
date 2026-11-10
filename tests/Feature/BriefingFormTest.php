@@ -98,6 +98,23 @@ class BriefingFormTest extends TestCase
         $this->assertCount(0, $this->briefings());
     }
 
+    public function test_content_is_limited_to_20000_characters(): void
+    {
+        Livewire::test(BriefingForm::class)
+            ->set('title', 'Title')
+            ->set('content', str_repeat('a', 20001))
+            ->call('save')
+            ->assertHasErrors(['content' => 'max']);
+
+        $this->assertCount(0, $this->briefings());
+
+        Livewire::test(BriefingForm::class)
+            ->set('title', 'Title')
+            ->set('content', str_repeat('a', 20000))
+            ->call('save')
+            ->assertHasNoErrors();
+    }
+
     public function test_title_is_limited_to_255_characters(): void
     {
         Livewire::test(BriefingForm::class)

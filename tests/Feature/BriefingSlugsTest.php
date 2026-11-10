@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\BriefingForm;
-use App\Support\ReservedSlugs;
+use App\Support\BriefingSlugs;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Route;
@@ -16,9 +16,9 @@ use Tests\TestCase;
 
 /**
  * /briefings/create is matched before Statamic's /briefings/{slug}, so a briefing with the
- * slug "create" could never be opened.
+ * slug "create" could never be opened. BriefingSlugs reserves such words and builds unique slugs.
  */
-class ReservedSlugsTest extends TestCase
+class BriefingSlugsTest extends TestCase
 {
     use RefreshDatabase;
 
@@ -29,6 +29,7 @@ class ReservedSlugsTest extends TestCase
         $this->withoutVite();
 
         Collection::make('briefings')->routes('/briefings/{slug}')->template('briefings/show')->layout('layout')->save();
+        Collection::make('news')->routes('/news/{slug}')->save();
         Cache::flush();
     }
 
@@ -44,18 +45,60 @@ class ReservedSlugsTest extends TestCase
 
     public function test_reserved_slugs_come_from_the_registered_briefings_routes(): void
     {
-        $this->assertContains('create', ReservedSlugs::briefings());
-        $this->assertNotContains('{slug}', ReservedSlugs::briefings());
-        $this->assertNotContains('drafts', ReservedSlugs::briefings(), '/my-drafts is not under /briefings.');
-        $this->assertTrue(ReservedSlugs::isReserved('create'));
-        $this->assertFalse(ReservedSlugs::isReserved('quarterly-update'));
+        $this->assertContains('create', BriefingSlugs::reserved());
+        $this->assertNotContains('{slug}', BriefingSlugs::reserved());
+        $this->assertNotContains('drafts', BriefingSlugs::reserved(), '/my-drafts is not under /briefings.');
+        $this->assertTrue(BriefingSlugs::isReserved('create'));
+        $this->assertFalse(BriefingSlugs::isReserved('quarterly-update'));
     }
 
     public function test_a_new_briefings_route_is_reserved_automatically(): void
     {
         Route::get('/briefings/archive', fn () => 'ok');
 
-        $this->assertTrue(ReservedSlugs::isReserved('archive'));
+        $this->assertTrue(BriefingSlugs::isReserved('archive'));
+    }
+
+    private function withSlug(string $slug, string $collection = 'briefings'): void
+    {
+        Entry::make()->collection($collection)->slug($slug)->data(['title' => $slug])->save();
+    }
+
+    public function test_unique_is_the_titles_slug_when_nothing_uses_it(): void
+    {
+        $this->assertSame('hello-world', BriefingSlugs::unique('Hello World!'));
+    }
+
+    public function test_unique_adds_the_next_free_number(): void
+    {
+        $this->withSlug('hello');
+        $this->assertSame('hello-2', BriefingSlugs::unique('Hello'));
+
+        $this->withSlug('hello-2');
+        $this->withSlug('hello-3');
+        $this->assertSame('hello-4', BriefingSlugs::unique('Hello'));
+    }
+
+    public function test_unique_only_looks_at_briefings_and_matches_whole_slugs(): void
+    {
+        $this->withSlug('hello', collection: 'news');
+        $this->withSlug('hello-there');
+
+        // Another collection's slug and a longer slug that merely starts the same way do not block it.
+        $this->assertSame('hello', BriefingSlugs::unique('Hello'));
+    }
+
+    public function test_unique_skips_the_words_our_own_routes_use(): void
+    {
+        $this->assertSame('create-2', BriefingSlugs::unique('Create'));
+    }
+
+    public function test_unique_falls_back_to_briefing_when_the_title_has_no_slug(): void
+    {
+        $this->assertSame('briefing', BriefingSlugs::unique('!!!'));
+
+        $this->withSlug('briefing');
+        $this->assertSame('briefing-2', BriefingSlugs::unique('???'));
     }
 
     public function test_the_form_never_uses_a_reserved_slug(): void
