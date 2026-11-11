@@ -384,6 +384,46 @@ class EditDraftsTest extends TestCase
             ->assertSee('You have no drafts.');
     }
 
+    public function test_the_flash_message_is_shown_as_a_toast_not_an_inline_alert(): void
+    {
+        $id = $this->draft();
+
+        $html = $this->actingAs($this->contributor())
+            ->followingRedirects()
+            ->delete(route('drafts.destroy', $id))
+            ->getContent();
+
+        // The toast component starts with the flashed message, as a success...
+        $this->assertStringContainsString('class="toast-region"', $html);
+        // The component's code lives in resources/js/toasts.js; the page only hands it the flashed message.
+        $this->assertStringContainsString('x-data="toasts(', $html);
+        $this->assertStringContainsString('Draft deleted.', $html);
+        // ...and the page itself no longer carries its own alert for it.
+        $this->assertSame(0, preg_match('/<div class="alert alert-success mb-6"/', $html));
+    }
+
+    public function test_an_error_message_is_a_toast_too(): void
+    {
+        $id = $this->draft('me', published: true);
+
+        $html = $this->actingAs($this->contributor())
+            ->followingRedirects()
+            ->delete(route('drafts.destroy', $id))
+            ->getContent();
+
+        $this->assertStringContainsString('class="toast alert alert-danger"', $html);
+        $this->assertStringContainsString('so it can no longer be deleted', $html);
+    }
+
+    public function test_pages_without_a_message_still_have_an_empty_toast_region_to_receive_one(): void
+    {
+        $this->actingAs($this->contributor())
+            ->get(route('drafts.index'))
+            ->assertOk()
+            ->assertSee('class="toast-region"', false)
+            ->assertDontSee('<noscript>', false);
+    }
+
     public function test_editing_and_deleting_drafts_leave_the_public_cache_alone(): void
     {
         $id = $this->draft();

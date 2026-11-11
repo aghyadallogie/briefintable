@@ -20,6 +20,7 @@
         {{ $slot }}
     </main>
     {{ $footer }}
+    <x-toast />
     @livewireScripts
 </body>
 

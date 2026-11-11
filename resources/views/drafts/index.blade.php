@@ -4,18 +4,6 @@
             <h1 class="text-2xl">My Drafts</h1>
         </div>
 
-        @if (session()->has('success'))
-        <div class="alert alert-success mb-6">
-            {{ session('success') }}
-        </div>
-        @endif
-
-        @if (session()->has('error'))
-        <div class="alert alert-danger mb-6" role="alert">
-            {{ session('error') }}
-        </div>
-        @endif
-
         <div class="space-y-6">
             @forelse ($drafts as $draft)
             <article class="card card-lift rise-in relative p-6" style="--i: {{ $loop->index }}">

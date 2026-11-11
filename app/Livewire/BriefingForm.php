@@ -137,7 +137,8 @@ class BriefingForm extends Component
 
         $entry->save();
 
-        session()->flash('success', $canPublish
+        // The form stays on screen (cleared), so the message is a toast event, not a session flash.
+        $this->dispatch('toast', type: 'success', message: $canPublish
             ? 'Briefing successfully created!'
             : 'Submitted for review. An admin will publish it.');
 

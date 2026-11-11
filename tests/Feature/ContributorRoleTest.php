@@ -96,7 +96,8 @@ class ContributorRoleTest extends TestCase
     {
         $this->actingAs($this->contributor());
 
-        $this->submit()->assertHasNoErrors()->assertSee('Submitted for review');
+        $this->submit()->assertHasNoErrors()
+            ->assertDispatched('toast', type: 'success', message: 'Submitted for review. An admin will publish it.');
 
         $entry = Entry::query()->where('collection', 'briefings')->get()->sole();
 

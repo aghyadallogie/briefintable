@@ -296,6 +296,19 @@
         @apply bg-danger-soft text-danger-ink;
     }
 
+    /*
+     * Toasts stack in the bottom corner (full width on phones) above everything else. The region lets
+     * clicks through, so only the toasts themselves catch them. Colours come from .alert-success and
+     * .alert-danger, so a toast always matches the inline alerts.
+     */
+    .toast-region {
+        @apply pointer-events-none fixed inset-x-4 bottom-4 z-50 flex flex-col gap-3 sm:inset-x-auto sm:right-6 sm:bottom-6 sm:w-96;
+    }
+
+    .toast {
+        @apply pointer-events-auto flex items-start justify-between gap-3 shadow-lift;
+    }
+
     /* Markdown bodies (briefing pages) follow the same tokens. */
     .prose {
         --tw-prose-body: var(--color-muted);

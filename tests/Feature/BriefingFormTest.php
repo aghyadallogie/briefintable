@@ -81,13 +81,24 @@ class BriefingFormTest extends TestCase
         $this->assertNull($entry->get('publication_state'));
     }
 
-    public function test_it_flashes_a_success_message(): void
+    public function test_it_sends_a_success_toast(): void
     {
         Livewire::test(BriefingForm::class)
             ->set('title', 'Hello')
             ->set('content', 'World')
             ->call('save')
-            ->assertSee('Briefing successfully created!');
+            ->assertDispatched('toast', type: 'success', message: 'Briefing successfully created!')
+            // Shown as a toast, not as a message inside the form, and not left in the session for the next page.
+            ->assertDontSee('Briefing successfully created!')
+            ->assertSessionMissing('success');
+    }
+
+    public function test_no_toast_is_sent_when_validation_fails(): void
+    {
+        Livewire::test(BriefingForm::class)
+            ->call('save')
+            ->assertHasErrors(['title', 'content'])
+            ->assertNotDispatched('toast');
     }
 
     public function test_title_and_content_are_required(): void

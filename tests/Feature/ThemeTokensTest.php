@@ -42,7 +42,7 @@ class ThemeTokensTest extends TestCase
             $this->assertStringContainsString($token.':', $css, "Missing design token {$token}.");
         }
 
-        foreach (['.btn', '.btn-primary', '.btn-secondary', '.card', '.field', '.badge', '.alert', '.link',
+        foreach (['.btn', '.btn-primary', '.btn-secondary', '.card', '.field', '.badge', '.alert', '.toast-region', '.toast', '.link',
             '.rise-in', '.card-lift', '.card-actions', '.logo-mark', '.brand', '.brand-name', '.icon-btn', '.icon-btn-danger', '.nav-link', '.nav-link-active', '.menu-toggle', '.menu-panel', '.menu-item', '.skip-link'] as $component) {
             $this->assertStringContainsString($component.' {', $css, "Missing component class {$component}.");
         }
