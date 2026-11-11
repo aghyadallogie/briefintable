@@ -94,6 +94,19 @@ class BriefingsQueryTest extends TestCase
         $this->assertSame(['Newer draft', 'Older draft'], $this->titles(Briefings::draftsOf('me')->get()));
     }
 
+    public function test_excerpt_is_the_body_as_plain_text_cut_to_the_length(): void
+    {
+        $entry = Entry::make()->collection('briefings')->slug('excerpt')
+            ->data(['title' => 'Excerpt', 'content' => "**Bold** and a [link](https://example.test) &amp; more\n\n".str_repeat('word ', 100)]);
+
+        $text = Briefings::excerpt($entry, 40);
+
+        $this->assertStringStartsWith('Bold and a link & more', $text);
+        $this->assertStringNotContainsString('<', $text);
+        $this->assertStringEndsWith('...', $text);
+        $this->assertLessThanOrEqual(43, mb_strlen($text));
+    }
+
     public function test_the_public_list_and_the_landing_page_show_the_order_the_class_defines(): void
     {
         // Written in one order, published in another, so a page that sorted by creation would disagree.

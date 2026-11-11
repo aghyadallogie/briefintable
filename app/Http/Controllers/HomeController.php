@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Str;
 
 /**
  * The landing page at "/".
@@ -29,7 +28,11 @@ class HomeController extends Controller
         return view('landing', $data);
     }
 
-    /** @return array{count: int, latest: list<array{title: string, excerpt: string, url: string, date: string}>} */
+    /**
+     * If the cache is empty, load the data from the database and return it as an array.
+     *
+     * @return array{count: int, latest: list<array{title: string, excerpt: string, url: string, date: string}>}
+     */
     private function load(): array
     {
         return [
@@ -37,10 +40,8 @@ class HomeController extends Controller
             'latest' => Briefings::newestPublished()->limit(self::LATEST)->get()
                 ->map(fn ($entry) => [
                     'title' => (string) $entry->get('title'),
-                    'excerpt' => Str::limit(html_entity_decode(strip_tags((string) $entry->augmentedValue('content'))), 160),
+                    'excerpt' => Briefings::excerpt($entry, 160),
                     'url' => (string) $entry->url(),
-                    // The date the list and the briefing page show, not "last modified", which changes
-                    // whenever an admin edits the entry.
                     'date' => $entry->value('written_at')->format('M j, Y'),
                 ])
                 ->all(),

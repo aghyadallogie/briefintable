@@ -2,6 +2,8 @@
 
 namespace App\Support;
 
+use Illuminate\Support\Str;
+use Statamic\Contracts\Entries\Entry as EntryContract;
 use Statamic\Contracts\Entries\QueryBuilder;
 use Statamic\Facades\Entry;
 
@@ -28,7 +30,7 @@ class Briefings
         return self::all()->whereStatus('published');
     }
 
-    // The public briefings list and the landing page both use this order.
+    /** The public briefings list and the landing page both use this order. */
     public static function newestPublished(): QueryBuilder
     {
         $query = self::published();
@@ -40,7 +42,7 @@ class Briefings
         return $query;
     }
 
-    // One author's unpublished briefings, newest first.
+    /** One author's unpublished briefings, newest first. */
     public static function draftsOf(string $authorId): QueryBuilder
     {
         return self::all()
@@ -49,12 +51,18 @@ class Briefings
             ->orderBy('created_at', 'desc');
     }
 
+    /** Plain-text preview (the rendered markdown without its tags), cut to $length characters. */
+    public static function excerpt(EntryContract $entry, int $length): string
+    {
+        return Str::limit(html_entity_decode(strip_tags((string) $entry->augmentedValue('content'))), $length);
+    }
+
     private static function all(): QueryBuilder
     {
         return Entry::query()->where('collection', self::COLLECTION);
     }
 
-    // The same ORDER, written the way Antlers 'sort' parameter wants it ("a:desc|b:desc").
+    /** The same ORDER, written the way Antlers 'sort' parameter wants it ("a:desc|b:desc"). */
     public static function antlersSort(): string
     {
         return collect(self::ORDER)->map(fn (array $order) => implode(':', $order))->implode('|');

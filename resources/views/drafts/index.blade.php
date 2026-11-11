@@ -46,8 +46,8 @@
                     Saved {{ $draft->lastModified()->format('M j, Y') }}
                 </div>
                 <div class="text-muted">
-                    {{-- Rendered markdown -> plain text. Blade escapes the result, so nothing here can inject markup. --}}
-                    {{ \Illuminate\Support\Str::limit(html_entity_decode(strip_tags((string) $draft->augmentedValue('content'))), 200) }}
+                    {{-- Plain-text preview of the rendered markdown. Blade escapes the result. --}}
+                    {{ \App\Support\Briefings::excerpt($draft, 200) }}
                 </div>
             </article>
             @empty
