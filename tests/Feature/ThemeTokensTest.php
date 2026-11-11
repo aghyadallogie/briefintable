@@ -11,14 +11,9 @@ use Tests\TestCase;
  */
 class ThemeTokensTest extends TestCase
 {
-    /** Unused Statamic starter page, kept as it shipped. */
-    private const IGNORED = ['home.antlers.html'];
-
     private function views(): array
     {
-        return collect(File::allFiles(resource_path('views')))
-            ->reject(fn ($file) => in_array($file->getFilename(), self::IGNORED, true))
-            ->all();
+        return File::allFiles(resource_path('views'));
     }
 
     public function test_views_use_theme_tokens_instead_of_raw_palette_colours(): void

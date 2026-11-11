@@ -26,7 +26,7 @@ use Statamic\Facades\Entry;
 #[Layout('components.layouts.app')]
 class BriefingForm extends Component
 {
-    private const savesPerMinute = 10;
+    private const savesPerMinute = 1;
 
     public string $title = '';
 
@@ -101,7 +101,7 @@ class BriefingForm extends Component
 
         $limiterKey = 'briefing-form:'.Auth::id();
 
-        if (! RateLimiter::attempt($limiterKey, self::savesPerMinute, fn () => true)) {
+        if (! RateLimiter::attempt($limiterKey, self::savesPerMinute, fn () => true, 600)) {
             $this->addError('throttle', 'You are saving too fast. Please try again in '.RateLimiter::availableIn($limiterKey).' seconds.');
 
             return;
