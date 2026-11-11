@@ -32,6 +32,17 @@ class BriefingsCache
         return sprintf('briefings.home.v%s', self::version());
     }
 
+    /**
+     * Key for one briefing's page. A draft is only ever rendered for an admin previewing it, and
+     * saving a draft does not bump the version, so a draft's key also changes with every edit.
+     */
+    public static function showKey(Entry $entry): string
+    {
+        $key = sprintf('briefings.show.v%s.%s', self::version(), $entry->id());
+
+        return $entry->published() ? $key : $key.'.draft'.$entry->lastModified()->timestamp;
+    }
+
     /** Returns the cached value for $key, or runs $resolve and caches the result for CACHE_TTL. */
     public static function remember(string $key, Closure $resolve): mixed
     {

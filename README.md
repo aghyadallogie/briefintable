@@ -18,7 +18,7 @@ Then open the URL that `php artisan serve` prints (usually `http://127.0.0.1:800
 |---|---|
 | `/` | Landing page: hero, how it works, the 3 newest published briefings and the published count (cached per list version, so publishing refreshes it) |
 | `/briefings` | Public, paginated list of published briefings |
-| `/briefings/{slug}` | A single briefing |
+| `/briefings/{slug}` | A single briefing (its body is cached under the same version as the list) |
 | `/briefings/create` | Livewire form (needs the `create briefings entries` permission) |
 | `/my-drafts` | The signed-in user's own unpublished briefings (the navbar email links here; not cached) |
 | `/my-drafts/{id}` | Read-only details page for one of your own drafts (the title on My Drafts links here), with a "Back to Drafts" link |
@@ -74,6 +74,7 @@ The rendered list is wrapped in Statamic's `{{ cache }}` tag. The key is `briefi
 - Entries written straight to the database fire no event. Run `php artisan cache:clear` after that, after editing the list template, and on every deploy.
 - Pager links are relative (`?page=N`) on purpose, because the cached HTML must not contain the host that rendered it.
 - Change the page size with `Briefings::PER_PAGE`.
+- The single briefing page uses the same idea: its body is wrapped in `{{ cache }}` under `briefings.show.v{version}.{id}`. The key and lifetime reach the template as computed values (`cache_key`, `cache_ttl`, set in `AppServiceProvider`) because Statamic's own routing renders that page. The author's name is cached with it, so a renamed author shows up after the next version bump or after a day.
 
 ### Output escaping
 

@@ -66,6 +66,11 @@ class AppServiceProvider extends ServiceProvider
         // has no dates, and `updated_at` changes when an admin publishes), so the bylines use this.
         Collection::computed(Briefings::COLLECTION, 'written_at', fn ($entry) => $entry->model()?->created_at);
 
+        // The briefing page is rendered by Statamic's own routing, not one of our controllers, so
+        // its template gets the cache key and lifetime here (see BriefingsCache::showKey()).
+        Collection::computed(Briefings::COLLECTION, 'cache_key', fn ($entry) => BriefingsCache::showKey($entry));
+        Collection::computed(Briefings::COLLECTION, 'cache_ttl', fn () => BriefingsCache::CACHE_TTL);
+
         Authenticate::redirectUsing(function () {
             if (Route::has('statamic.cp.login')) {
                 return route('statamic.cp.login');

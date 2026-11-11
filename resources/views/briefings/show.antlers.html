@@ -1,14 +1,17 @@
 <div class="max-w-3xl mx-auto p-6 mt-10 rise-in">
     <a href="{{ route:briefings.index }}" class="link mb-4 inline-block">&larr; Back to Briefings</a>
 
-    <h1 class="text-4xl mb-4">{{ title | sanitize }}</h1>
+    {{# Same HTML for every visitor, so safe to cache. Key is version-stamped; see App\Support\BriefingsCache. #}}
+    {{ cache :key="cache_key" :for="cache_ttl" }}
+        <h1 class="text-4xl mb-4">{{ title | sanitize }}</h1>
 
-    <div class="text-sm text-subtle mb-8 border-b border-line pb-4">
-        {{# Never falls back to the email address: that would publish it. #}}
-        Written by {{ if author:name }}{{ author:name | sanitize }}{{ else }}a contributor{{ /if }} on {{ written_at format="F j, Y" }}
-    </div>
+        <div class="text-sm text-subtle mb-8 border-b border-line pb-4">
+            {{# Never falls back to the email address: that would publish it. #}}
+            Written by {{ if author:name }}{{ author:name | sanitize }}{{ else }}a contributor{{ /if }} on {{ written_at format="F j, Y" }}
+        </div>
 
-    <div class="prose prose-lg max-w-none">
-        {{ content }}
-    </div>
+        <div class="prose prose-lg max-w-none">
+            {{ content }}
+        </div>
+    {{ /cache }}
 </div>
