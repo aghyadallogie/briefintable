@@ -23,6 +23,9 @@ class Briefings
 
     public const CAN_PUBLISH = 'publish briefings entries';
 
+    /** Briefings per page on the public list and on My Drafts. */
+    public const PER_PAGE = 5;
+
     public const ORDER = [['published_at', 'desc'], ['created_at', 'desc']];
 
     public static function published(): QueryBuilder

@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\BriefingController;
+use App\Support\Briefings;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
 use Statamic\Contracts\Auth\User as UserContract;
@@ -108,7 +108,7 @@ class MyDraftsTest extends TestCase
 
     public function test_it_paginates_and_404s_past_the_last_page(): void
     {
-        foreach (range(1, BriefingController::PER_PAGE + 1) as $i) {
+        foreach (range(1, Briefings::PER_PAGE + 1) as $i) {
             $this->briefing("Draft number $i", 'me');
         }
 

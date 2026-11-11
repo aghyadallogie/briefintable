@@ -6,6 +6,7 @@ use App\Support\Briefings;
 use App\Support\BriefingSlugs;
 use App\Support\DraftState;
 use App\Support\OwnDrafts;
+use Illuminate\Contracts\View\View;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\RateLimiter;
@@ -26,7 +27,7 @@ use Statamic\Facades\Entry;
 #[Layout('components.layouts.app')]
 class BriefingForm extends Component
 {
-    private const savesPerMinute = 1;
+    private const savesPerMinute = 10;
 
     public string $title = '';
 
@@ -48,7 +49,7 @@ class BriefingForm extends Component
 
     public function mount(?string $draft = null): void
     {
-        $this->backUrl = $this->previousUrl($draft === null ? '/briefings' : route('drafts.index', absolute: false));
+        $this->backUrl = $this->previousUrl(route($draft === null ? 'briefings.index' : 'drafts.index', absolute: false));
 
         if ($draft === null) {
             return;
@@ -93,7 +94,7 @@ class BriefingForm extends Component
      * - The "published" flag comes from the browser, so it only counts for users allowed to
      *   publish; everyone else always saves a draft.
      */
-    public function save()
+    public function save(): void
     {
         abort_unless(Gate::allows(Briefings::CAN_CREATE), 403);
 
@@ -113,7 +114,9 @@ class BriefingForm extends Component
         $publish = $this->published && $canPublish;
 
         if ($this->draftId) {
-            return $this->updateDraft($publish);
+            $this->updateDraft($publish);
+
+            return;
         }
 
         $this->createBriefing($publish, $canPublish);
@@ -148,7 +151,7 @@ class BriefingForm extends Component
      * publishes at the same moment is never overwritten. If it went live or was deleted, nothing is
      * saved and the form stays on screen with the author's text so they can copy it.
      */
-    protected function updateDraft(bool $publish)
+    protected function updateDraft(bool $publish): void
     {
         $state = OwnDrafts::whileLocked($this->draftId, function ($entry) use ($publish) {
             $state = OwnDrafts::stateFor(Auth::user(), $entry);
@@ -177,7 +180,7 @@ class BriefingForm extends Component
 
         session()->flash('success', $publish ? 'Briefing published.' : 'Draft updated.');
 
-        return $this->redirect(route('drafts.index'));
+        $this->redirect(route('drafts.index'));
     }
 
     /** Resolves a safe, internal URL to send the user back to, preventing open redirects and reload loops. */
@@ -198,7 +201,7 @@ class BriefingForm extends Component
         return Gate::allows(Briefings::CAN_PUBLISH);
     }
 
-    public function render()
+    public function render(): View
     {
         return view('livewire.briefing-form', [
             'canPublish' => $this->canPublish(),

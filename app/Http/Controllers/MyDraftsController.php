@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Support\Briefings;
+use Illuminate\Contracts\View\View;
 use Illuminate\Http\Request;
 use Statamic\Facades\User;
 
@@ -14,9 +15,9 @@ use Statamic\Facades\User;
  */
 class MyDraftsController extends Controller
 {
-    public function __invoke(Request $request)
+    public function __invoke(Request $request): View
     {
-        $drafts = Briefings::draftsOf(User::current()->id())->paginate(BriefingController::PER_PAGE);
+        $drafts = Briefings::draftsOf(User::current()->id())->paginate(Briefings::PER_PAGE);
 
         abort_if($drafts->currentPage() > $drafts->lastPage(), 404);
 

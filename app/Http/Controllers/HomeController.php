@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\Briefings;
 use App\Support\BriefingsCache;
+use Illuminate\Contracts\View\View;
 
 /**
  * The landing page at "/".
@@ -16,7 +17,7 @@ class HomeController extends Controller
 {
     private const LATEST = 3;
 
-    public function __invoke()
+    public function __invoke(): View
     {
         $data = BriefingsCache::remember(BriefingsCache::homeKey(), fn () => $this->load());
 

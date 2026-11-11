@@ -59,7 +59,7 @@ class Navbar extends Component
 
             $this->account = [
                 'email' => $email,
-                'logout' => cp_route('logout', ['redirect' => '/briefings']),
+                'logout' => cp_route('logout', ['redirect' => route('briefings.index', absolute: false)]),
             ];
         }
     }

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Support\DraftState;
 use App\Support\OwnDrafts;
+use Illuminate\Contracts\View\View;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Statamic\Facades\Entry;
 
@@ -15,7 +17,7 @@ use Statamic\Facades\Entry;
  */
 class ShowDraftController extends Controller
 {
-    public function __invoke(string $draft)
+    public function __invoke(string $draft): View|RedirectResponse
     {
         $entry = Entry::find($draft);
         $state = OwnDrafts::stateFor(Auth::user(), $entry);

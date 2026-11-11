@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Support\DraftState;
 use App\Support\OwnDrafts;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -16,7 +17,7 @@ use Illuminate\Support\Facades\Auth;
  */
 class DeleteDraftController extends Controller
 {
-    public function __invoke(string $draft)
+    public function __invoke(string $draft): RedirectResponse
     {
         $state = OwnDrafts::whileLocked($draft, function ($entry) {
             $state = OwnDrafts::stateFor(Auth::user(), $entry);

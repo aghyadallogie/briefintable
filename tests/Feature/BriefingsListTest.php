@@ -2,7 +2,7 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\BriefingController;
+use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -127,14 +127,14 @@ class BriefingsListTest extends TestCase
 
     public function test_it_paginates_and_shows_pager_links(): void
     {
-        foreach (range(1, BriefingController::PER_PAGE + 2) as $i) {
+        foreach (range(1, Briefings::PER_PAGE + 2) as $i) {
             $this->travelTo(now()->addMinute());
             $this->briefing("Briefing {$i}");
         }
         $this->travelBack();
 
         $first = $this->get('/briefings')->assertOk();
-        $this->assertSame(BriefingController::PER_PAGE, substr_count($first->getContent(), '<article'));
+        $this->assertSame(Briefings::PER_PAGE, substr_count($first->getContent(), '<article'));
         $first->assertSee('Page 1 of 2')->assertSee('Older');
 
         $second = $this->get('/briefings?page=2')->assertOk();
@@ -144,7 +144,7 @@ class BriefingsListTest extends TestCase
 
     public function test_cached_pager_links_do_not_leak_the_host_that_rendered_them(): void
     {
-        foreach (range(1, BriefingController::PER_PAGE + 1) as $i) {
+        foreach (range(1, Briefings::PER_PAGE + 1) as $i) {
             $this->briefing("Briefing {$i}");
         }
 
@@ -204,7 +204,7 @@ class BriefingsListTest extends TestCase
 
     public function test_the_cached_count_is_refreshed_when_a_public_briefing_is_added(): void
     {
-        foreach (range(1, BriefingController::PER_PAGE) as $i) {
+        foreach (range(1, Briefings::PER_PAGE) as $i) {
             $this->briefing("Briefing {$i}");
         }
 
@@ -243,7 +243,7 @@ class BriefingsListTest extends TestCase
 
     private function listKey(): string
     {
-        return BriefingsCache::listKey(1, BriefingController::PER_PAGE);
+        return BriefingsCache::listKey(1, Briefings::PER_PAGE);
     }
 
     public function test_creating_a_draft_does_not_invalidate_the_cache(): void
@@ -321,11 +321,11 @@ class BriefingsListTest extends TestCase
     public function test_changes_in_other_collections_do_not_invalidate_the_cache(): void
     {
         Collection::make('pages')->save();
-        $key = BriefingsCache::listKey(1, BriefingController::PER_PAGE);
+        $key = BriefingsCache::listKey(1, Briefings::PER_PAGE);
 
         Entry::make()->collection('pages')->slug('about')->data(['title' => 'About'])->save();
 
-        $this->assertSame($key, BriefingsCache::listKey(1, BriefingController::PER_PAGE));
+        $this->assertSame($key, BriefingsCache::listKey(1, Briefings::PER_PAGE));
     }
 
     public function test_the_create_page_requires_login(): void

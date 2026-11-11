@@ -18,13 +18,11 @@ use Statamic\View\View as StatamicView;
  */
 class BriefingController extends Controller
 {
-    public const PER_PAGE = 5;
-
-    public function index(Request $request)
+    public function index(Request $request): string
     {
         $totalBriefingsCount = BriefingsCache::publishedCount(fn () => Briefings::published()->count());
 
-        $lastPage = max(1, (int) ceil($totalBriefingsCount / self::PER_PAGE));
+        $lastPage = max(1, (int) ceil($totalBriefingsCount / Briefings::PER_PAGE));
         $page = max(1, (int) $request->query('page', 1));
 
         // Shown with the styled errors/404 template (see withExceptions in bootstrap/app.php).
@@ -36,8 +34,8 @@ class BriefingController extends Controller
                 'page_title' => 'Briefings',
                 'collection_handle' => Briefings::COLLECTION,
                 'sort' => Briefings::antlersSort(),
-                'per_page' => self::PER_PAGE,
-                'cache_key' => BriefingsCache::listKey($page, self::PER_PAGE),
+                'per_page' => Briefings::PER_PAGE,
+                'cache_key' => BriefingsCache::listKey($page, Briefings::PER_PAGE),
                 'cache_ttl' => BriefingsCache::CACHE_TTL,
             ])
             ->render();

@@ -2,8 +2,8 @@
 
 namespace Tests\Feature;
 
-use App\Http\Controllers\BriefingController;
 use App\Livewire\BriefingForm;
+use App\Support\Briefings;
 use App\Support\BriefingsCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -195,7 +195,7 @@ class BriefingFormTest extends TestCase
 
     public function test_saving_invalidates_the_public_list_cache(): void
     {
-        $before = BriefingsCache::listKey(1, BriefingController::PER_PAGE);
+        $before = BriefingsCache::listKey(1, Briefings::PER_PAGE);
 
         Livewire::test(BriefingForm::class)
             ->set('title', 'Fresh')
@@ -203,7 +203,7 @@ class BriefingFormTest extends TestCase
             ->set('published', true)
             ->call('save');
 
-        $this->assertNotSame($before, BriefingsCache::listKey(1, BriefingController::PER_PAGE));
+        $this->assertNotSame($before, BriefingsCache::listKey(1, Briefings::PER_PAGE));
         $this->get('/briefings')->assertSee('Fresh');
     }
 }

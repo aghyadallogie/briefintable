@@ -73,7 +73,7 @@ The rendered list is wrapped in Statamic's `{{ cache }}` tag. The key is `briefi
 - Saving or deleting a briefing that is, or just was, published bumps the version through an event listener in [`AppServiceProvider`](app/Providers/AppServiceProvider.php), so new content shows up immediately. Draft-to-draft changes don't bump it.
 - Entries written straight to the database fire no event. Run `php artisan cache:clear` after that, after editing the list template, and on every deploy.
 - Pager links are relative (`?page=N`) on purpose, because the cached HTML must not contain the host that rendered it.
-- Change the page size with `BriefingController::PER_PAGE`.
+- Change the page size with `Briefings::PER_PAGE`.
 
 ### Output escaping
 
