@@ -64,6 +64,19 @@ class BriefingsCacheTest extends TestCase
         $this->assertSame(1, $calls);
     }
 
+    public function test_every_bump_makes_a_version_never_used_before(): void
+    {
+        $keys = [BriefingsCache::listKey(1, 10)];
+
+        for ($i = 0; $i < 20; $i++) {
+            BriefingsCache::bump();
+            $keys[] = BriefingsCache::listKey(1, 10);
+        }
+
+        // A counter that two bumps could write the same value to would repeat a key here.
+        $this->assertSame($keys, array_values(array_unique($keys)));
+    }
+
     public function test_bump_changes_every_key(): void
     {
         $before = [BriefingsCache::listKey(1, 10), BriefingsCache::listKey(2, 10)];

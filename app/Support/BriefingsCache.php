@@ -4,6 +4,7 @@ namespace App\Support;
 
 use Closure;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Str;
 use Statamic\Contracts\Entries\Entry;
 
 /**
@@ -22,28 +23,34 @@ class BriefingsCache
 
     public static function listKey(int $page, int $perPage): string
     {
-        return sprintf('briefings.list.v%d.n%d.p%d', self::version(), $perPage, $page);
+        return sprintf('briefings.list.v%s.n%d.p%d', self::version(), $perPage, $page);
     }
 
     /** Key for the landing page's latest briefings and published count. */
     public static function homeKey(): string
     {
-        return sprintf('briefings.home.v%d', self::version());
+        return sprintf('briefings.home.v%s', self::version());
     }
 
     /** Query is passed in from Controller to keep cache class decoupled from Eloquent and Statamic. */
     public static function publishedCount(Closure $resolve): int
     {
         return (int) Cache::remember(
-            sprintf('briefings.count.v%d', self::version()),
-            now()->modify('+' . self::CACHE_TTL),
+            sprintf('briefings.count.v%s', self::version()),
+            now()->modify('+'.self::CACHE_TTL),
             $resolve,
         );
     }
 
+    /**
+     * Starts a new version. The version is a random token, not a counter: a counter is read, added to
+     * and written back, so two bumps at the same moment could write the same number and leave a page
+     * cached in between with a key that is never invalidated. A fresh token never repeats, and works
+     * on every cache driver (the file driver's increment() is not atomic either).
+     */
     public static function bump(): void
     {
-        Cache::forever(self::VERSION_KEY, self::version() + 1);
+        Cache::forever(self::VERSION_KEY, Str::random(12));
     }
 
     /** Only bump cache version if entry is a briefing AND is published or was published. Ignores drafts. */
@@ -58,8 +65,8 @@ class BriefingsCache
         }
     }
 
-    private static function version(): int
+    private static function version(): string
     {
-        return (int) Cache::get(self::VERSION_KEY, 1);
+        return (string) Cache::get(self::VERSION_KEY, '1');
     }
 }
