@@ -8,6 +8,12 @@
         </div>
         @endif
 
+        @error('throttle')
+        <div class="alert alert-danger mb-4" role="alert">
+            {{ $message }}
+        </div>
+        @enderror
+
         @if ($blockedReason)
         <div class="alert alert-danger mb-4" role="alert">
             {{ $blockedReason }} Your text is still below if you want to copy it.

@@ -8,6 +8,7 @@ use App\Support\DraftState;
 use App\Support\OwnDrafts;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
+use Illuminate\Support\Facades\RateLimiter;
 use Livewire\Attributes\Layout;
 use Livewire\Attributes\Locked;
 use Livewire\Component;
@@ -25,6 +26,8 @@ use Statamic\Facades\Entry;
 #[Layout('components.layouts.app')]
 class BriefingForm extends Component
 {
+    private const savesPerMinute = 10;
+
     public string $title = '';
 
     public string $content = '';
@@ -85,6 +88,8 @@ class BriefingForm extends Component
      * - The permission is re-checked here because Livewire actions are their own requests,
      *   so the route middleware doesn't cover them (403).
      * - A blocked form (its draft went live or disappeared) stays blocked (409).
+     * - Each user may save savesPerMinute times a minute. It is counted before validating, so
+     *   invalid submissions count too, and the limit is per user, so one user can't use up another's.
      * - The "published" flag comes from the browser, so it only counts for users allowed to
      *   publish; everyone else always saves a draft.
      */
@@ -93,6 +98,14 @@ class BriefingForm extends Component
         abort_unless(Gate::allows(Briefings::CAN_CREATE), 403);
 
         abort_if($this->blockedReason !== null, 409);
+
+        $limiterKey = 'briefing-form:'.Auth::id();
+
+        if (! RateLimiter::attempt($limiterKey, self::savesPerMinute, fn () => true)) {
+            $this->addError('throttle', 'You are saving too fast. Please try again in '.RateLimiter::availableIn($limiterKey).' seconds.');
+
+            return;
+        }
 
         $this->validate();
 

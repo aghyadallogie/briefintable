@@ -104,5 +104,6 @@ vendor/bin/pint                # format
 
 ## Known gaps
 
-- No rate limit on the form, and contributors can't edit or delete a briefing once an admin has published it.
+- Contributors can't edit or delete a briefing once an admin has published it.
+- The write form allows 10 saves a minute per user (`BriefingForm::savesPerMinute`); the limit is kept in the cache, so it is per server with the file driver.
 - Users are flat files, so they don't survive a host with an ephemeral disk.

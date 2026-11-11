@@ -7,6 +7,7 @@ use App\Livewire\BriefingForm;
 use App\Support\BriefingsCache;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
+use Livewire\Features\SupportTesting\Testable;
 use Livewire\Livewire;
 use Statamic\Facades\Collection;
 use Statamic\Facades\Entry;
@@ -96,6 +97,32 @@ class BriefingFormTest extends TestCase
             ->assertHasErrors(['title' => 'required', 'content' => 'required']);
 
         $this->assertCount(0, $this->briefings());
+    }
+
+    private function save(string $title): Testable
+    {
+        return Livewire::test(BriefingForm::class)->set('title', $title)->set('content', 'Body')->call('save');
+    }
+
+    public function test_saving_is_limited_to_ten_times_a_minute_per_user(): void
+    {
+        foreach (range(1, 10) as $i) {
+            $this->save("Briefing $i")->assertHasNoErrors();
+        }
+
+        $this->save('One too many')->assertHasErrors('throttle')->assertSee('saving too fast');
+        $this->assertCount(10, $this->briefings());
+
+        // Someone else is not affected by this user's limit.
+        $this->actingAs(User::make()->id('author-2')->email('two@example.test')->makeSuper());
+        $this->save('Another author')->assertHasNoErrors();
+        $this->assertCount(11, $this->briefings());
+
+        // The window passes, so the first user can save again.
+        $this->actingAs(User::make()->id('author-1')->email('author@example.test')->makeSuper());
+        $this->travel(61)->seconds();
+        $this->save('Later')->assertHasNoErrors();
+        $this->assertCount(12, $this->briefings());
     }
 
     public function test_content_is_limited_to_20000_characters(): void
