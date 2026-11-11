@@ -22,9 +22,9 @@ class BriefingController extends Controller
 
     public function index(Request $request)
     {
-        $total_briefings_count = BriefingsCache::publishedCount(fn () => Briefings::published()->count());
+        $totalBriefingsCount = BriefingsCache::publishedCount(fn () => Briefings::published()->count());
 
-        $lastPage = max(1, (int) ceil($total_briefings_count / self::PER_PAGE));
+        $lastPage = max(1, (int) ceil($totalBriefingsCount / self::PER_PAGE));
         $page = max(1, (int) $request->query('page', 1));
 
         // Shown with the styled errors/404 template (see withExceptions in bootstrap/app.php).

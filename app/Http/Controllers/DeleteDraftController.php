@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 /**
  * Permanently deletes one of the signed-in user's own unpublished briefings.
  *
- * A 404 for anything that isn't theirs, so ids don't reveal what exists. 
+ * A 404 for anything that isn't theirs, so ids don't reveal what exists.
  * If it is theirs but admin has published it in the meantime, they get a message instead.
  * The check and the delete run under a row lock so a concurrent publish can't be deleted by mistake.
  * Deleting a draft doesn't touch the public list cache; only published entries do.

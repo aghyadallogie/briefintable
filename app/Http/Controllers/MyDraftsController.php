@@ -9,7 +9,7 @@ use Statamic\Facades\User;
 /**
  * The signed-in user's own unpublished briefings, newest first.
  *
- * Deliberately not cached because it is different for every user, 
+ * Deliberately not cached because it is different for every user,
  * so it must never share the public list's cache key.
  */
 class MyDraftsController extends Controller
