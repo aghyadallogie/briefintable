@@ -102,7 +102,7 @@ class BriefingForm extends Component
 
         $limiterKey = 'briefing-form:'.Auth::id();
 
-        if (! RateLimiter::attempt($limiterKey, self::savesPerMinute, fn () => true, 600)) {
+        if (! RateLimiter::attempt($limiterKey, self::savesPerMinute, fn () => true, 60)) {
             $this->addError('throttle', 'You are saving too fast. Please try again in '.RateLimiter::availableIn($limiterKey).' seconds.');
 
             return;
