@@ -4,6 +4,7 @@ namespace App\Livewire;
 
 use App\Support\Briefings;
 use App\Support\BriefingSlugs;
+use App\Support\DraftState;
 use App\Support\OwnDrafts;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Gate;
@@ -54,9 +55,9 @@ class BriefingForm extends Component
         $state = OwnDrafts::stateFor(Auth::user(), $entry);
 
         // 404 for anything that isn't yours or published, so ids don't reveal what exists.
-        abort_unless(in_array($state, [OwnDrafts::DRAFT, OwnDrafts::PUBLISHED], true), 404);
+        abort_unless($state->isYours(), 404);
 
-        if ($state === OwnDrafts::PUBLISHED) {
+        if ($state === DraftState::Published) {
             session()->flash('error', 'That briefing has been published, so it can no longer be edited here.');
             $this->redirect(route('drafts.index'));
 
@@ -139,7 +140,7 @@ class BriefingForm extends Component
         $state = OwnDrafts::whileLocked($this->draftId, function ($entry) use ($publish) {
             $state = OwnDrafts::stateFor(Auth::user(), $entry);
 
-            if ($state === OwnDrafts::DRAFT) {
+            if ($state === DraftState::Draft) {
                 $entry->published($publish)
                     ->data($entry->data()->merge([
                         'title' => $this->title,
@@ -151,10 +152,10 @@ class BriefingForm extends Component
             return $state;
         });
 
-        abort_if($state === OwnDrafts::FOREIGN, 404);
+        abort_if($state === DraftState::Foreign, 404);
 
-        if ($state === OwnDrafts::PUBLISHED || $state === OwnDrafts::MISSING) {
-            $this->blockedReason = $state === OwnDrafts::PUBLISHED
+        if ($state === DraftState::Published || $state === DraftState::Missing) {
+            $this->blockedReason = $state === DraftState::Published
                 ? 'This briefing was published while you were editing it, so your changes were not saved.'
                 : 'This draft no longer exists, so your changes were not saved.';
 

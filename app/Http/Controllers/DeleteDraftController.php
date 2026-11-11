@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DraftState;
 use App\Support\OwnDrafts;
 use Illuminate\Support\Facades\Auth;
 
@@ -20,19 +21,19 @@ class DeleteDraftController extends Controller
         $state = OwnDrafts::whileLocked($draft, function ($entry) {
             $state = OwnDrafts::stateFor(Auth::user(), $entry);
 
-            if ($state === OwnDrafts::DRAFT) {
+            if ($state === DraftState::Draft) {
                 $entry->delete();
             }
 
             return $state;
         });
 
-        if ($state === OwnDrafts::PUBLISHED) {
+        if ($state === DraftState::Published) {
             return redirect()->route('drafts.index')
                 ->with('error', 'That briefing has been published, so it can no longer be deleted.');
         }
 
-        abort_unless($state === OwnDrafts::DRAFT, 404);
+        abort_unless($state === DraftState::Draft, 404);
 
         return redirect()->route('drafts.index')->with('success', 'Draft deleted.');
     }

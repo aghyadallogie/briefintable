@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Support\DraftState;
 use App\Support\OwnDrafts;
 use Illuminate\Support\Facades\Auth;
 use Statamic\Facades\Entry;
@@ -19,9 +20,9 @@ class ShowDraftController extends Controller
         $entry = Entry::find($draft);
         $state = OwnDrafts::stateFor(Auth::user(), $entry);
 
-        abort_unless(in_array($state, [OwnDrafts::DRAFT, OwnDrafts::PUBLISHED], true), 404);
+        abort_unless($state->isYours(), 404);
 
-        if ($state === OwnDrafts::PUBLISHED) {
+        if ($state === DraftState::Published) {
             return redirect($entry->url() ?? route('briefings.index'));
         }
 

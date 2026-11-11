@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Livewire\BriefingForm;
+use App\Support\DraftState;
 use App\Support\OwnDrafts;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\Cache;
@@ -260,7 +261,7 @@ class EditDraftsTest extends TestCase
 
         $state = OwnDrafts::whileLocked($id, fn ($entry) => OwnDrafts::stateFor($user, $entry));
 
-        $this->assertSame(OwnDrafts::PUBLISHED, $state);
+        $this->assertSame(DraftState::Published, $state);
     }
 
     public function test_the_ownership_states(): void
@@ -270,12 +271,16 @@ class EditDraftsTest extends TestCase
         $theirs = $this->entry($this->draft('other'));
         $me = $this->contributor();
 
-        $this->assertSame(OwnDrafts::DRAFT, OwnDrafts::stateFor($me, $mine));
-        $this->assertSame(OwnDrafts::PUBLISHED, OwnDrafts::stateFor($me, $live));
-        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor($me, $theirs));
-        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor($this->admin(), $mine));
-        $this->assertSame(OwnDrafts::FOREIGN, OwnDrafts::stateFor(null, $mine));
-        $this->assertSame(OwnDrafts::MISSING, OwnDrafts::stateFor($me, null));
+        $this->assertSame(DraftState::Draft, OwnDrafts::stateFor($me, $mine));
+        $this->assertSame(DraftState::Published, OwnDrafts::stateFor($me, $live));
+        $this->assertSame(DraftState::Foreign, OwnDrafts::stateFor($me, $theirs));
+        $this->assertSame(DraftState::Foreign, OwnDrafts::stateFor($this->admin(), $mine));
+        $this->assertSame(DraftState::Foreign, OwnDrafts::stateFor(null, $mine));
+        $this->assertSame(DraftState::Missing, OwnDrafts::stateFor($me, null));
+        $this->assertTrue(DraftState::Draft->isYours());
+        $this->assertTrue(DraftState::Published->isYours());
+        $this->assertFalse(DraftState::Foreign->isYours());
+        $this->assertFalse(DraftState::Missing->isYours());
     }
 
     public function test_saving_is_rechecked_if_the_session_user_changed(): void
