@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Support\Briefings;
 use App\Support\BriefingsCache;
-use Illuminate\Support\Facades\Cache;
 
 /**
  * The landing page at "/".
@@ -19,11 +18,7 @@ class HomeController extends Controller
 
     public function __invoke()
     {
-        $data = Cache::remember(
-            BriefingsCache::homeKey(),
-            now()->modify('+'.BriefingsCache::CACHE_TTL),
-            fn () => $this->load(),
-        );
+        $data = BriefingsCache::remember(BriefingsCache::homeKey(), fn () => $this->load());
 
         return view('landing', $data);
     }
@@ -36,7 +31,7 @@ class HomeController extends Controller
     private function load(): array
     {
         return [
-            'count' => Briefings::published()->count(),
+            'count' => BriefingsCache::publishedCount(fn () => Briefings::published()->count()),
             'latest' => Briefings::newestPublished()->limit(self::LATEST)->get()
                 ->map(fn ($entry) => [
                     'title' => (string) $entry->get('title'),

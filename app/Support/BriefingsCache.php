@@ -32,14 +32,16 @@ class BriefingsCache
         return sprintf('briefings.home.v%s', self::version());
     }
 
-    /** Query is passed in from Controller to keep cache class decoupled from Eloquent and Statamic. */
+    /** Returns the cached value for $key, or runs $resolve and caches the result for CACHE_TTL. */
+    public static function remember(string $key, Closure $resolve): mixed
+    {
+        return Cache::remember($key, now()->modify('+'.self::CACHE_TTL), $resolve);
+    }
+
+    /** The published count, shared by the list page and the landing page. $resolve runs the actual query. */
     public static function publishedCount(Closure $resolve): int
     {
-        return (int) Cache::remember(
-            sprintf('briefings.count.v%s', self::version()),
-            now()->modify('+'.self::CACHE_TTL),
-            $resolve,
-        );
+        return (int) self::remember(sprintf('briefings.count.v%s', self::version()), $resolve);
     }
 
     /**

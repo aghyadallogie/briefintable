@@ -49,6 +49,21 @@ class BriefingsCacheTest extends TestCase
         $this->assertSame(2, $calls);
     }
 
+    public function test_remember_runs_the_callback_once_per_key_and_forgets_it_after_a_bump(): void
+    {
+        $calls = 0;
+        $resolve = function () use (&$calls) {
+            return 'value-'.++$calls;
+        };
+
+        $this->assertSame('value-1', BriefingsCache::remember(BriefingsCache::homeKey(), $resolve));
+        $this->assertSame('value-1', BriefingsCache::remember(BriefingsCache::homeKey(), $resolve));
+
+        BriefingsCache::bump();
+
+        $this->assertSame('value-2', BriefingsCache::remember(BriefingsCache::homeKey(), $resolve));
+    }
+
     public function test_a_published_count_of_zero_is_cached_too(): void
     {
         $calls = 0;
