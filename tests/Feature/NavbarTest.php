@@ -152,7 +152,7 @@ class NavbarTest extends TestCase
         $this->assertSame(1, preg_match('/<button [^>]*x-ref="accountToggle".*?<\/button>/s', $html, $button), 'Missing account button.');
 
         // A decorative user icon (head and shoulders) plus a screen-reader label.
-        $this->assertMatchesRegularExpression('/<svg [^>]*aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" \/><circle cx="12" cy="7" r="4" \/><\/svg>/', $button[0]);
+        $this->assertMatchesRegularExpression('/<svg [^>]*aria-hidden="true">\s*<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" \/>\s*<circle cx="12" cy="7" r="4" \/>\s*<\/svg>/', $button[0]);
         $this->assertStringContainsString('<span class="sr-only">Account menu</span>', $button[0]);
 
         // No letter from the email in the button, and the email stays out of it entirely.

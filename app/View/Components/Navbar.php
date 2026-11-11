@@ -51,8 +51,6 @@ class Navbar extends Component
         if (! $signedIn) {
             $this->cta = ['label' => 'Log in', 'url' => route('login'), 'hidden' => false];
         } elseif (Gate::allows(Briefings::CAN_CREATE)) {
-            // On the write form itself you are already there, so the button is hidden. It is still rendered
-            // (invisible) so it keeps its place and the links beside it don't shift.
             $this->cta = ['label' => 'Write a briefing', 'url' => route('briefings.create'), 'hidden' => $request->is('briefings/create')];
         }
 
@@ -61,7 +59,6 @@ class Navbar extends Component
 
             $this->account = [
                 'email' => $email,
-                // Statamic's own logout route; sends people back to the public list afterwards.
                 'logout' => cp_route('logout', ['redirect' => '/briefings']),
             ];
         }

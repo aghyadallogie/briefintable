@@ -7,12 +7,7 @@
     class="sticky top-0 z-50 border-b border-line bg-surface shadow-card">
     <a href="#content" class="skip-link">Skip to content</a>
 
-    {{-- The brand sits on the left. The links, the button and the menus form one group pushed to the right
-         (ml-auto). The write button keeps its space even when it is hidden (on the write form), so the links
-         stay put on every page. --}}
     <div class="mx-auto flex max-w-5xl items-center gap-4 px-6 py-3">
-        <!-- Brand: always home. Logo circle plus wordmark (the wordmark shows from the sm breakpoint up, like
-             table.briefings). The link has its own accessible name, so the logo and wordmark are decorative. -->
         <a href="{{ route('home') }}" class="brand" aria-label="Briefintable, home" title="Briefintable">
             <span class="logo-mark" aria-hidden="true"><span class="text-2xl">B</span></span>
             <span class="brand-name" aria-hidden="true">Briefin'table</span>
@@ -45,7 +40,10 @@
                     aria-haspopup="true" aria-controls="account-menu" aria-expanded="false" :aria-expanded="menu === 'account'"
                     class="menu-toggle px-3 py-2 hover:bg-page">
                     {{-- User profile icon (outline head and shoulders), like table.briefings' account button. --}}
-                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                        <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
+                        <circle cx="12" cy="7" r="4" />
+                    </svg>
                     <span class="sr-only">Account menu</span>
                 </button>
                 <div id="account-menu" x-cloak x-show="menu === 'account'"
