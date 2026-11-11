@@ -8,14 +8,14 @@
             <div class="card mx-auto max-w-5xl p-8 md:p-12">
                 <div class="grid items-center gap-10 md:grid-cols-2">
                     <div>
-                        <p class="text-xs font-semibold tracking-widest text-primary uppercase">Briefintable</p>
-                        <h1 class="mt-3 text-4xl sm:text-5xl">Clear, reviewed briefings.</h1>
-                        <p class="mt-5 text-lg leading-relaxed text-muted">
+                        <p class="rise-in text-xs font-semibold tracking-widest text-primary uppercase" style="--i: 0">Briefintable</p>
+                        <h1 class="rise-in mt-3 text-4xl sm:text-5xl" style="--i: 1">Clear, reviewed briefings.</h1>
+                        <p class="rise-in mt-5 text-lg leading-relaxed text-muted" style="--i: 2">
                             Briefintable is where contributors write and editors approve. Every briefing is reviewed
                             before it goes live, so what you read is worth your time.
                         </p>
 
-                        <div class="mt-8 flex flex-wrap items-center gap-3">
+                        <div class="rise-in mt-8 flex flex-wrap items-center gap-3" style="--i: 3">
                             <a href="{{ route('briefings.index') }}" class="btn btn-primary">Read the briefings</a>
                             @auth
                             <a href="{{ route('drafts.index') }}" class="btn btn-secondary">My drafts</a>
@@ -26,7 +26,7 @@
                     </div>
 
                     {{-- Decorative: a draft becoming a published briefing --}}
-                    <div class="relative mx-auto hidden h-72 w-full max-w-sm md:block" aria-hidden="true">
+                    <div class="rise-in relative mx-auto hidden h-72 w-full max-w-sm md:block" style="--i: 2" aria-hidden="true">
                         <div class="absolute inset-x-4 top-2 h-56 rotate-3 rounded-card bg-primary-soft"></div>
                         <div class="absolute inset-x-2 top-5 h-56 -rotate-2 rounded-card bg-primary/15"></div>
                         <div class="card absolute inset-x-0 top-10 p-5 shadow-lift">
@@ -52,7 +52,7 @@
 
         {{-- Value points --}}
         <section class="px-6 py-6" aria-labelledby="why-heading">
-            <div class="card mx-auto max-w-5xl p-8 md:p-12">
+            <div class="card rise-in mx-auto max-w-5xl p-8 md:p-12" style="--i: 4">
                 <h2 id="why-heading" class="sr-only">Why Briefintable</h2>
                 <ul class="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
                     <li>
@@ -90,23 +90,23 @@
         {{-- How it works --}}
         <section class="px-6 py-10" aria-labelledby="how-heading">
             <div class="mx-auto max-w-5xl">
-                <h2 id="how-heading" class="text-2xl">How it works</h2>
+                <h2 id="how-heading" class="rise-in text-2xl" style="--i: 5">How it works</h2>
                 <ol class="mt-8 grid gap-6 md:grid-cols-3">
-                    <li class="card p-6">
+                    <li class="card rise-in p-6" style="--i: 5">
                         <div class="flex items-center gap-3">
                             <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">1</span>
                             <h3 class="text-base">Write</h3>
                         </div>
                         <p class="mt-2 text-sm leading-relaxed text-muted">Log in and write a briefing. It is saved as a draft that only you can see.</p>
                     </li>
-                    <li class="card p-6">
+                    <li class="card rise-in p-6" style="--i: 6">
                         <div class="flex items-center gap-3">
                             <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">2</span>
                             <h3 class="text-base">Review</h3>
                         </div>
                         <p class="mt-2 text-sm leading-relaxed text-muted">An editor checks it in the control panel and publishes it when it is ready.</p>
                     </li>
-                    <li class="card p-6">
+                    <li class="card rise-in p-6" style="--i: 7">
                         <div class="flex items-center gap-3">
                             <span class="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-contrast">3</span>
                             <h3 class="text-base">Read</h3>
@@ -120,7 +120,7 @@
         {{-- Latest briefings (real data, cached per version) --}}
         <section class="px-6 pb-10" aria-labelledby="latest-heading">
             <div class="mx-auto max-w-5xl">
-                <div class="flex flex-wrap items-end justify-between gap-2">
+                <div class="rise-in flex flex-wrap items-end justify-between gap-2" style="--i: 5">
                     <div>
                         <h2 id="latest-heading" class="text-2xl">Latest briefings</h2>
                         <p class="mt-1 text-sm text-subtle">{{ number_format($count) }} {{ \Illuminate\Support\Str::plural('briefing', $count) }} published</p>
@@ -131,7 +131,7 @@
                 @if (count($latest))
                 <div class="mt-6 grid gap-6 md:grid-cols-3">
                     @foreach ($latest as $briefing)
-                    <article class="card card-lift rise-in flex flex-col p-6" style="--i: {{ $loop->index }}">
+                    <article class="card card-lift rise-in flex flex-col p-6" style="--i: {{ 5 + $loop->index }}">
                         <p class="text-xs text-subtle">{{ $briefing['date'] }}</p>
                         <h3 class="mt-2 text-lg">
                             <a href="{{ $briefing['url'] }}" class="hover:text-primary">{{ $briefing['title'] }}</a>
@@ -142,7 +142,7 @@
                     @endforeach
                 </div>
                 @else
-                <p class="card mt-6 p-6 text-subtle">The first briefings are on their way.</p>
+                <p class="card rise-in mt-6 p-6 text-subtle" style="--i: 5">The first briefings are on their way.</p>
                 @endif
             </div>
         </section>
@@ -150,7 +150,7 @@
         {{-- Closing call to action --}}
         @guest
         <section class="px-6 pb-16">
-            <div class="mx-auto max-w-5xl rounded-card bg-primary px-8 py-12 text-center shadow-card">
+            <div class="rise-in mx-auto max-w-5xl rounded-card bg-primary px-8 py-12 text-center shadow-card" style="--i: 8">
                 <h2 class="text-2xl text-primary-contrast sm:text-3xl">Ready to write one?</h2>
                 <p class="mx-auto mt-3 max-w-xl text-primary-contrast/85">Log in to submit your first briefing. An editor will take it from there.</p>
                 <a href="{{ route('login') }}" class="btn btn-inverse mt-8">Log in</a>
@@ -159,7 +159,7 @@
         @else
         @can(\App\Support\Briefings::CAN_CREATE)
         <section class="px-6 pb-16">
-            <div class="mx-auto max-w-5xl rounded-card bg-primary px-8 py-12 text-center shadow-card">
+            <div class="rise-in mx-auto max-w-5xl rounded-card bg-primary px-8 py-12 text-center shadow-card" style="--i: 8">
                 <h2 class="text-2xl text-primary-contrast sm:text-3xl">Have something to share?</h2>
                 <p class="mx-auto mt-3 max-w-xl text-primary-contrast/85">Write a briefing now. It is saved as a draft until an editor publishes it.</p>
                 <a href="{{ route('briefings.create') }}" class="btn btn-inverse mt-8">Write a briefing</a>

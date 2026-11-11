@@ -146,7 +146,30 @@ class LandingPageTest extends TestCase
         $html = $this->get('/')->assertOk()->getContent();
 
         $this->assertSame(3, preg_match_all('/<article class="card card-lift rise-in[^"]*" style="--i: (\d+)">/', $html, $m));
-        $this->assertSame(['0', '1', '2'], $m[1]);
+        // They come after the hero, the value points and the steps, which use 0 to 4 and 5 to 7.
+        $this->assertSame(['5', '6', '7'], $m[1]);
+    }
+
+    public function test_the_page_arrives_in_order_from_the_hero_down(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        // Every element that enters, in page order, with the position the CSS staggers it by.
+        preg_match_all('/class="[^"]*\brise-in\b[^"]*"[^>]*style="--i: (\d+)"/', $html, $m);
+
+        // Hero (text 0-3, picture 2), value points 4, "How it works" heading and steps 5-7, the
+        // latest section's heading 5 and its empty-state card 5 (no briefings here), the closing
+        // call to action 8 (shown to guests).
+        $this->assertSame([0, 1, 2, 3, 2, 4, 5, 5, 6, 7, 5, 5, 8], array_map('intval', $m[1]));
+    }
+
+    public function test_the_hero_and_value_cards_are_not_animated_twice(): void
+    {
+        $html = $this->get('/')->assertOk()->getContent();
+
+        // The hero card stays still while its text enters; an animated parent would fade the children twice.
+        $this->assertSame(1, preg_match('/<div class="card mx-auto max-w-5xl p-8 md:p-12">/', $html));
+        $this->assertSame(1, preg_match('/<div class="card rise-in mx-auto max-w-5xl p-8 md:p-12" style="--i: 4">/', $html));
     }
 
     public function test_it_has_a_friendly_empty_state_and_singular_count(): void
