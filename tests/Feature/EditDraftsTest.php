@@ -194,6 +194,25 @@ class EditDraftsTest extends TestCase
         $this->delete(route('drafts.destroy', $id))->assertNotFound();
     }
 
+    public function test_the_delete_button_shows_a_spinner_while_the_request_is_in_flight(): void
+    {
+        $this->draft();
+
+        $html = $this->actingAs($this->contributor())->get(route('drafts.index'))->assertOk()->getContent();
+
+        // Alpine asks for confirmation (no inline script) and then marks the delete as in flight...
+        $this->assertStringContainsString('x-on:submit="confirm(', $html);
+        $this->assertStringNotContainsString('onsubmit=', $html);
+        $this->assertStringContainsString('x-data="{ deleting: false }"', $html);
+        // ...which swaps the trash icon for a spinner, disables the button so it can't be sent twice,
+        // and keeps the actions visible even when the pointer leaves the card.
+        $this->assertStringContainsString('animate-spin', $html);
+        $this->assertStringContainsString(':disabled="deleting"', $html);
+        $this->assertStringContainsString(":style=\"deleting && 'opacity: 1'\"", $html);
+        // The form still posts normally, so deleting works without the script too.
+        $this->assertStringContainsString('name="_method" value="DELETE"', $html);
+    }
+
     public function test_unknown_ids_are_a_404(): void
     {
         $this->actingAs($this->contributor());

@@ -81,6 +81,20 @@ class BriefingFormTest extends TestCase
         $this->assertNull($entry->get('publication_state'));
     }
 
+    public function test_the_save_button_shows_a_spinner_while_saving(): void
+    {
+        $html = Livewire::test(BriefingForm::class)->html();
+
+        // Both the caption and the spinner follow the save() request, not any other Livewire request.
+        $this->assertStringContainsString('wire:loading.attr="disabled" wire:target="save"', $html);
+        $this->assertStringContainsString('wire:loading.class="invisible" wire:target="save"', $html);
+        $this->assertStringContainsString('wire:loading.flex wire:target="save"', $html);
+        $this->assertStringContainsString('animate-spin', $html);
+        $this->assertStringContainsString('Saving…', $html);
+        // The caption is still in the page (hidden while saving), so the button keeps its size.
+        $this->assertStringContainsString('Save Briefing', $html);
+    }
+
     public function test_it_sends_a_success_toast(): void
     {
         Livewire::test(BriefingForm::class)

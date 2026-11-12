@@ -45,8 +45,13 @@
             <div class="flex justify-end items-center gap-3">
                 <a href="{{ $backUrl }}" class="btn btn-secondary">Back</a>
                 @unless ($blockedReason)
-                <button type="submit" class="btn btn-primary">
-                    {{ $editing ? 'Save changes' : 'Save Briefing' }}
+                {{-- While save() runs, the caption is replaced by a spinner (kept in place but invisible, so the button doesn't change size) and the button is disabled so it can't be sent twice. --}}
+                <button type="submit" class="btn btn-primary relative" wire:loading.attr="disabled" wire:target="save">
+                    <span wire:loading.class="invisible" wire:target="save">{{ $editing ? 'Save changes' : 'Save Briefing' }}</span>
+                    <span class="absolute inset-0 hidden items-center justify-center" wire:loading.flex wire:target="save">
+                        <span class="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" aria-hidden="true"></span>
+                        <span class="sr-only">Saving…</span>
+                    </span>
                 </button>
                 @endunless
             </div>

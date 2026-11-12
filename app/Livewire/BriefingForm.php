@@ -77,8 +77,8 @@ class BriefingForm extends Component
     protected function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'content' => 'required|string|max:20000',
+            'title' => 'required|string|max:255|min:3',
+            'content' => 'required|string|max:20000|min:8',
             'published' => 'boolean',
         ];
     }
